@@ -1,0 +1,848 @@
+body{
+  font-size:    1em;
+  font-family:  georgia, serif;
+  text-align:   left;
+  color:        #444;
+  background:   #FFF;
+  padding:      0;
+  margin:       0;
+}
+
+html{ font-size:100%; } // for IE
+
+h1 {
+  font-size: 3em;
+  font-weight: bold;
+  text-align: center;
+  font-style:italic;
+  color: black;
+  margin: 0px 0px 0px;
+}  
+
+.ecogenBody{
+  position:  static;
+  top:       0px;
+  left:      0px;
+  width:     100%;
+  height:    100%;
+  font-size: 13px;
+}
+
+table td, select {
+    font-family: georgia, serif;
+    font-size:   13px;
+}
+
+.header{
+  display:          block;
+  width:            100%;
+  font-size:        1.33em;
+  color:            white;
+  background-color: #331F00;
+  height:           2em;
+  // line-height:      0.25em;
+}
+
+.successWelcomeLabel{
+	text-align: center;
+	width:      100%;
+	// margin-top: 0.5em;
+}
+
+.workspace{
+	font-size: 1em;
+  color:     black;
+  left:      0px;
+  width:     100%;
+  height:    40em;
+}
+
+.footer{
+  color: black ;
+  font-size:  1em;
+  font-style: italic;
+}
+
+.welcomeWorkspace{
+	display:   block;
+  width:     100%;
+  height:    100%;
+}
+
+.logo {
+	display:       block;
+	width:         800px;
+	margin-left:   auto;
+	margin-right:  auto;
+	margin-top:    5px;
+	margin-bottom: 5px;
+}
+
+.newFormButton {
+	display:       block;
+	width:         20em;
+	margin-left:   auto;
+	margin-right:  auto;
+	margin-top:    10px;
+	margin-bottom: 10px;
+}
+
+.buildCSVButton {
+	display:       block;
+	width:         20em;
+	margin-left:   auto;
+	margin-right:  auto;
+	margin-top:    10px;
+	margin-bottom: 10px;
+}
+
+.formsSearchButton {
+	display:     block;
+	float:       none;
+	margin-left: 5px;
+}
+
+.formEditButton {
+	display:       inline-block;
+	float:         left;
+	margin-left:   5px;
+	margin-top:    auto;
+	margin-bottom: auto;
+}
+
+/* Forms management */
+
+.formsManagementPanel {
+	display:  block;
+	width:    90%;
+  height:   20em;
+  margin-left:  auto;
+  margin-right: auto;
+	background-color: white ;
+	border: 1px solid #000 ;
+}
+
+.formsManagementLabel {
+  display:  inline-block;
+  width:    auto;
+  float:    left;
+  margin-left: 10px;
+}
+
+.formsManagementDate {
+  display:  inline-block;
+  float:    left;
+  margin-left: 5px;
+}
+
+.formsManagementDateEnd {
+	display:      inline-block;
+	float:        left;
+  margin-left:  5px;
+  margin-right: 5px;
+}
+
+.formsManagementList {
+  display:  inline-block;
+  float:    left;
+  margin-left: 5px;
+}
+
+/* Dashboard */
+
+.dashboardLeaveButton {
+	display:       inline-block;
+	float:         left;
+	margin-left:   5px;
+	margin-right:  5px;
+	margin-top:    auto;
+	margin-bottom: auto;
+}
+
+.dashboardPivotLabel {
+  display:       inline-block;
+  width:         auto;
+  float:         left;
+  margin-left:   10px;
+  margin-top:    auto;
+	margin-bottom: auto;
+}
+
+.dashboardPivotControl {
+  display:       inline-block;
+  width:         auto;
+  float:         left;
+  margin-left:   10px;
+  margin-top:    auto;
+	margin-bottom: auto;
+}
+
+.dashboardSubmitButton {
+	display:       inline-block;
+	float:         left;
+	margin-left:   5px;
+	margin-right:  5px;
+	margin-top:    auto;
+	margin-bottom: auto;
+}
+
+/* Encounter edition */
+
+.formGlobalPanel{
+  // display:          block;
+  // width:            100%;
+  // height:           100%;
+  font-size:        1em;
+  color:            black;
+  background-color: white;
+  line-height:      normal;
+}
+
+.formBlockPanel {
+	display:       block;
+	width:         auto;
+	margin-left:   auto;
+	margin-right:  auto;
+	margin-top:    10px;
+	margin-bottom: 10px;
+}
+
+.encounterLeftContextPanel {
+  display:  inline-block;
+  float:    left;
+  height:   100%;
+  width:    30%;
+  background-color: white ;
+}
+
+.encounterRightContextPanel {
+	display:  inline-block;
+	float:    left;
+	height:   100%;
+	width:    68%;
+  background-color: white ;
+  border-left: 1px solid #000 ;
+}
+
+.formContextPanelBlock {
+  display:  block;
+  float:    left;
+  width:    100%;
+  background-color: white;
+}
+
+.encounterContextLeftSubPanelBlock {
+  display:  inline-block;
+  float:    left;
+  width:    30%;
+  background-color: white;
+}
+
+encounterContextRightSubPanelBlock {
+  display:  inline-block;
+  float:    left;
+  width:    70%;
+  background-color: white;
+}
+
+.encounterTable {
+  display:   block;
+  float:     left;
+  width:     100%;
+}
+
+.integerTextBox {
+	display:    inline-block;
+  float:      left;
+  width:      5em;
+  font-size:  1em;
+}
+
+.encounterIdLabel {
+  display:   inline-block;
+  float:     right;
+  font-size: 1em;
+}
+
+.encounterIdTextBox {
+	display:   inline-block;
+  float:     right;
+  width:     5em;
+  font-size: 1em;
+}
+
+.encounterZipCodeTextBox {
+  width:     5em;
+  font-size: 1em;
+}
+
+.soapContextEncounterTitle { 
+  display:     inline-block;
+  float:       left;
+  height:      1.3em;
+  font-size:   1em;
+  font-weight: bold;
+  color:       black;
+  margin-left: 4px;
+}
+
+.soapContextPatientTitle { 
+  display:     block;
+  height:      1.3em;
+  font-size:   1em;
+  font-weight: bold;
+  color:       black;
+  margin-left: 4px;
+}
+
+.encounterSoapBasketsPanel {
+	display:        block;
+	vertical-align: top;
+  width:          100%;
+  height:         32em;
+  background-color: #F8F8F8;
+}
+
+.soapBasket {
+  display:  inline-block;
+  float:    left;
+  width:    22em;
+  height:   30em;
+  vertical-align: top;
+  background-color: white ;
+  border:   1px solid #000 ;
+  margin:   3px 3px 3px 3px;
+}
+
+.soapBasketForS {
+	display: block;
+  height:  10em;
+  width:   100%;
+  background-color: white ;
+  border: 1px solid #000 ;
+}
+
+.soapHeaderForS {
+  display:  block;
+	height:   32px;
+	width:    100%;
+  background-color: white ;
+  margin: 0px 0px 0px;
+}
+
+.soapContentForS {
+  display: block;
+  height:  100%;
+  width:   100%;
+  background-color: white ;
+  border-top: 1px solid #000 ;
+  margin:  0px 0px 0px;
+}
+
+.soapBasketForA {
+  display: block;
+  height:  8em;
+  width:   100%;
+  background-color: white ;
+  border: 1px solid #000 ;
+}
+
+.soapHeaderForA {
+  display:  block;
+  height:   32px;
+  width:    100%;
+  background-color: white ;
+  margin: 0px 0px 0px;
+}
+
+.soapContentForA {
+	display: block;
+  height:  100%;
+  width:   100%;
+  background-color: white ;
+  border-top: 1px solid #000 ;
+  margin: 0px 0px 0px;
+}
+
+.soapBasketForP {
+  display: block;
+  height:  10em;
+  width:   100%;
+  background-color: white ;
+  border: 1px solid #000 ;
+}
+
+.soapHeaderForP {
+  display:  block;
+  height:   32px;
+  width:    100%;
+  background-color: white ;
+  margin: 0px 0px 0px;
+}
+
+.soapContentForP {
+  display: block;
+  height:  8.5em;
+  width:   100%;
+	background-color: white ;
+  border-top: 1px solid #000 ;
+  margin: 0px 0px 0px;
+}
+
+.soapHeaderTitle{ 
+	display:   inline-block;
+	float:     left;
+	height:    1em;
+  left:      5px;
+  font-size: 1em;
+  color:     black;
+}
+
+.soapAddButton {
+	display:    inline-block;
+	float:      left;
+	width:      22px;
+	height:     22px;
+	background: #FFF;
+	float:      right;
+}
+.soapAddButton-up {
+  width:      22px;
+  height:     22px;
+  background: #FFF;
+  float:      right;
+}
+
+.soapControlPannel {
+  display:  inline-block;
+  width:    34px;
+  height:   30px;
+  background-color: white ;
+  border:   1px solid #000 ;
+  margin:   0px 0px 0px;
+}
+
+.codeEnveloppe {
+	display: inline-block;
+	float:   left;
+  height:  5em;
+  width:   120px;
+  vertical-align: top ;
+  background-color: white ;
+  border:  1px solid #000 ;
+  margin:  3px 3px 3px 3px;
+}
+
+.codeEnveloppeHeader {
+	display:  inline-block;
+	float:    left;
+	height:  22px;
+  background-color: white ;
+  margin:  0px 0px 0px;
+}
+
+.codeEnveloppe-Symptom {
+  background-color: #CCFF99 ;
+}
+
+.codeEnveloppe-Neoplasm {
+  background-color: #CCCCFF ;
+}
+
+.codeEnveloppe-Infection {
+  background-color: #FFFFCC ;
+}
+
+.codeEnveloppe-Injury {
+  background-color: #FFCC66 ;
+}
+ 
+.codeEnveloppe-Congenital {
+  background-color: #3366FF ;
+}       
+  
+.codeEnveloppe-Other {
+  background-color: #9966FF ;
+}
+ 
+.codeEnveloppe-Procedure {
+  background-color: #F0F0F0 ;
+}   
+    
+.codeCispCode {
+	display:    block;
+	text-align: center;
+	width:      100%;
+	height:     22px;
+  color:      black ;
+  font-size:  1.33em;
+}
+
+.codeCispText {
+	display:    block;
+	text-align: center;
+	width:      100%;
+  color:      black ;
+  font-size:  0.8em;
+  padding:    4px 0px 0px 0px; 
+}
+
+.codeEnveloppeFooter {
+  background-color: white ;
+  margin: 0px 0px 0px;
+  width:  100%;
+}
+
+.codeDeleteButton {
+	display:    block;
+	float:      left;
+  width:      22px;
+  height:     22px;
+  background: #FFF;
+  border:     0px;
+  padding:    0px;
+}
+.codeDeleteButton-up {
+	display:    block;
+	float:      left;
+  width:      22px;
+  height:     22px;
+  background: #FFF;
+  border:     0px;
+}
+
+.dialogCodeTextBox {
+  width:     5em;
+  font-size: 1em;
+}
+
+.dialogQuestionLabel {
+	display:    inline;
+  float:      left;
+  font-size: 1em;
+}
+
+.dialogTransferabilityPanel {
+  display: block;
+  float:   left;
+}
+
+.dialogProfessionnalPanel {
+  display: block;
+  float:   left;
+  border:  1px solid #000 ;
+}
+
+.loginButton {
+  text-align: center;
+  display: #555555;
+  font-size: 16pt;
+  color:black;
+  height:20pt;
+  width:150pt;
+}
+
+.regButton{
+	text-align: center;
+	display:    #555555;
+	font-size:  16pt;
+	color:      black;
+	height:     3em;
+	width:      20em;
+}
+
+.logintable {
+  position:   absolute;
+  top:        0px;
+  right:      0px;
+  font-size:  2em;
+  color:      #FFFFFF;
+}
+
+/* User information */
+
+.userInformationMainPanel {
+	position: static;
+  display:  block;
+  float:    left;
+  height:   100%;
+  width:    100%;
+  background-color: white;
+}
+
+.userInformationDataPanel {
+  display:  block;
+  height:    70%;
+  width:    100%;
+  background-color: white;
+}
+
+.userInformationDemographicsPanel {
+  display:  inline-block;
+  float:    left;
+  width:    30%;
+  height:   100%;
+  padding:  20px;
+  background-color: white;
+  overflow: auto;
+}
+
+.userInformationBusinessPanel {
+  display:  block;
+  float:    left;
+  width:    60%;
+  height:   100%;
+  padding:  20px;
+  background-color: white;
+}
+
+.userInformationButtonsPanel {
+  display:  block;
+  float:    left;
+  width:    100%;
+  background-color: white;
+}
+
+.userInformationLinePanel {
+  display:          block;
+  width:            100%;
+  height:           3em;
+  margin-top:       5px;
+  margin-bottom:    5px;
+  background-color: white;
+}
+
+.userInformationBirthLabel {
+  display:          inline-block;
+  float:            left;
+  margin-right:     10px;
+  background-color: white;
+}
+
+.userInformationBirthListBox {
+  display:          block;
+  background-color: white;
+}
+
+.userInformationMaleRadio {
+  display:          inline-block;
+  float:            left;
+  margin-right:     10px;
+  background-color: white;
+}
+
+.userInformationFemaleRadio {
+  display:          block;
+  background-color: white;
+}
+
+.userInformationLabel {
+  display:          inline-block;
+  float:            left;
+  margin-right:     10px;
+  width:            15em;
+  background-color: white;
+}
+
+.userInformationZipCodeTextBox {
+	display:    inline-block;
+  float:      left;
+  width:      5em;
+  font-size:  1em;
+}
+
+.userInformationCityListBox {
+	display:    block;
+  width:      15em;
+  font-size:  1em;
+}
+
+.firstRadio {
+  display:          inline-block;
+  float:            left;
+  margin-right:     10px;
+  background-color: white;
+}
+
+.otherRadio {
+  display:          inline-block;
+  float:            left;
+  margin-right:     10px;
+  background-color: white;
+}
+
+.lastRadio {
+  display:          block;
+  background-color: white;
+}
+
+.inlineLabel {
+	display:    inline-block;
+  float:      left;
+  font-size:  1em;
+}
+
+.numberBox {
+	display:    inline-block;
+  float:      left;
+  width:      3em;
+  margin-right: 2px;
+  margin-left: 2px;
+  font-size:  1em;
+}
+
+.xxdotxxNumber {
+	display:    inline-block;
+  float:      left;
+  width:      5em;
+  font-size:  1em;
+}
+
+.userInformationUnitLabel {
+	display:    inline-block;
+  float:      left;
+}
+
+.cancel_button {
+	display:    inline-block;
+  float:      right;
+}
+
+.audioLeftHeaderPanel {
+  display:  inline-block;
+  float:    left;
+  width:    30%;
+  background-color: white ;
+  border-left: 1px solid #000 ;
+}
+
+.audioRightHeaderPanel {
+	display:  inline-block;
+	float:    left;
+	width:    68%;
+  background-color: white ;
+}
+
+.audioPlayerManagementPanel {
+	display:  block;
+	width:    90%;
+  height:   30em;
+  margin-left:  auto;
+  margin-right: auto;
+	background-color: white ;
+	border: 1px solid #000 ;
+}
+
+.audioPlayerWorkspace {
+  display:  block;
+  float:    left;
+  width:    100%;
+  background-color: white;
+}
+
+/* inspired by http://webdesignerwall.com/tutorials/css3-gradient-buttons */
+
+.button {
+  /* vertical-align: baseline; */
+  /* margin: 0 2px; */
+  outline: none;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  /* font: 14px/100% Arial, Helvetica, sans-serif; */
+  /* padding: .5em 2em .55em; */
+  text-shadow: 0 1px 1px rgba(0,0,0,.3);
+  -webkit-border-radius: .5em; 
+  -moz-border-radius: .5em;
+  border-radius: .5em;
+  -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.2);
+  -moz-box-shadow: 0 1px 2px rgba(0,0,0,.2);
+  box-shadow: 0 1px 2px rgba(0,0,0,.2);
+}
+.button:hover {
+  text-decoration: none;
+}
+.button:active {
+  position: relative;
+  top: 1px;
+}
+
+.bigrounded {
+  -webkit-border-radius: 2em;
+  -moz-border-radius: 2em;
+  border-radius: 2em;
+}
+.medium {
+  font-size: 12px;
+  padding: .4em 1.5em .42em;
+}
+.small {
+  font-size: 11px;
+  padding: .2em 1em .275em;
+}
+
+/* orange */
+.orange {
+  color: #fef4e9;
+  border: solid 1px #da7c0c;
+  background: #f78d1d;
+  background: -webkit-gradient(linear, left top, left bottom, from(#faa51a), to(#f47a20));
+  background: -moz-linear-gradient(top,  #faa51a,  #f47a20);
+  filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#faa51a', endColorstr='#f47a20');
+}
+.orange:hover {
+  background: #f47c20;
+  background: -webkit-gradient(linear, left top, left bottom, from(#f88e11), to(#f06015));
+  background: -moz-linear-gradient(top,  #f88e11,  #f06015);
+  filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#f88e11', endColorstr='#f06015');
+}
+.orange:active {
+  color: #fcd3a5;
+  background: -webkit-gradient(linear, left top, left bottom, from(#f47a20), to(#faa51a));
+  background: -moz-linear-gradient(top,  #f47a20,  #faa51a);
+  filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#f47a20', endColorstr='#faa51a');
+}
+
+/* red */
+.red {
+	color: #faddde;
+	border: solid 1px #980c10;
+	background: #d81b21;
+	background: -webkit-gradient(linear, left top, left bottom, from(#ed1c24), to(#aa1317));
+	background: -moz-linear-gradient(top,  #ed1c24,  #aa1317);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#ed1c24', endColorstr='#aa1317');
+}
+.red:hover {
+	background: #b61318;
+	background: -webkit-gradient(linear, left top, left bottom, from(#c9151b), to(#a11115));
+	background: -moz-linear-gradient(top,  #c9151b,  #a11115);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#c9151b', endColorstr='#a11115');
+}
+.red:active {
+	color: #de898c;
+	background: -webkit-gradient(linear, left top, left bottom, from(#aa1317), to(#ed1c24));
+	background: -moz-linear-gradient(top,  #aa1317,  #ed1c24);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#aa1317', endColorstr='#ed1c24');
+}
+
+/* white */
+.white {
+	color: #606060;
+	border: solid 1px #b7b7b7;
+	background: #fff;
+	background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#ededed));
+	background: -moz-linear-gradient(top,  #fff,  #ededed);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#ededed');
+}
+.white:hover {
+	background: #ededed;
+	background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#dcdcdc));
+	background: -moz-linear-gradient(top,  #fff,  #dcdcdc);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#dcdcdc');
+}
+.white:active {
+	color: #999;
+	background: -webkit-gradient(linear, left top, left bottom, from(#ededed), to(#fff));
+	background: -moz-linear-gradient(top,  #ededed,  #fff);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#ffffff');
+}
