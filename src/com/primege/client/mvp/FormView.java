@@ -45,10 +45,12 @@ public class FormView extends FormViewModel implements FormPresenter.Display
 	 * @param sCaptionStyle   CSS style for the label
 	 * @param bInitFromPrev   <code>true</code> if the process is to initialize information from the previous form
 	 * @param bInBlockCell    <code>true</code> if the control is to be inserted in the block, <code>false</code> if in label's cell
+	 * @param masterBlock     Form's root panel (if null, then the form global panel is used)
+	 * @param bEdited         <code>true</code> if the form is being edited, <code>false</code> if it is new
 	 */
 	@SuppressWarnings("deprecation")
 	@Override
-	public void insertNewControl(final String sControlPath, final ArrayList<FormDataData> aContent, final String sControlCaption, final String sControlType, final String sControlSubtype, final String sControlUnit, final String sControlValue, final ArrayList<FormControlOptionData> aOptions, final String sControlStyle, final String sCaptionStyle, final boolean bInitFromPrev, final String sExclusion, final boolean bInBlockCell, final boolean bInPdfWhenEmpty, FormBlockPanel masterBlock)
+	public void insertNewControl(final String sControlPath, final ArrayList<FormDataData> aContent, final String sControlCaption, final String sControlType, final String sControlSubtype, final String sControlUnit, final String sControlValue, final ArrayList<FormControlOptionData> aOptions, final String sControlStyle, final String sCaptionStyle, final boolean bInitFromPrev, final String sExclusion, final boolean bInBlockCell, final boolean bInPdfWhenEmpty, FormBlockPanel masterBlock, boolean bEdited)
 	{
 		FormBlockPanel referenceBlock = masterBlock ;
 		if (null == referenceBlock)
@@ -120,7 +122,7 @@ public class FormView extends FormViewModel implements FormPresenter.Display
 			currentBlock.insertControl(sControlCaption, sCaptionStyle, cityControl, cityControl.getControlBase(), bInBlockCell) ;
 		}
 		else
-			insertNewGenericControl(sControlPath, aContent, sControlCaption, sControlType, sControlSubtype, sControlUnit, sControlValue, aOptions, sControlStyle, sCaptionStyle, bInitFromPrev, sExclusion, bInBlockCell, bInPdfWhenEmpty, referenceBlock) ;
+			insertNewGenericControl(sControlPath, aContent, sControlCaption, sControlType, sControlSubtype, sControlUnit, sControlValue, aOptions, sControlStyle, sCaptionStyle, bInitFromPrev, sExclusion, bInBlockCell, bInPdfWhenEmpty, referenceBlock, bEdited) ;
 	}
 	
 	@Override

@@ -77,7 +77,12 @@ public class EventDateControl extends HorizontalPanel implements ControlModel, H
   
   protected int              _iStartMonth ;  // What month appears on top of months list
   
+  /** <code>true</code> if the form is being edited, <code>false</code> if it is new */
+  protected boolean          _bEdited ;
+  
+  /** Lower limit */
   protected String           _sDateFrom ;
+  /** Upper limit */
   protected String           _sDateTo ;
   
   /**
@@ -122,9 +127,11 @@ public class EventDateControl extends HorizontalPanel implements ControlModel, H
   
   public void init(final String sContent)
   {
+  	boolean bCheckValidity = true ;
+  	
   	if ((null == sContent) || "".equals(sContent))
   	{
-  		initFromDate(new Date()) ;
+  		initFromDate(new Date(), bCheckValidity) ;
   		return ;
   	}
   	
@@ -134,11 +141,17 @@ public class EventDateControl extends HorizontalPanel implements ControlModel, H
   	
   	// Initialize the ListBox
     //
-  	initFromInt(iDay, iMonth, iYear) ;
+  	
+  	// If an old form is being edited, we have better not paint it red because it would not be valid for a new form
+  	//
+  	if (_bEdited)
+  		bCheckValidity = false ;
+  	
+  	initFromInt(iDay, iMonth, iYear, bCheckValidity) ;
   }
   
   @SuppressWarnings("deprecation")
-	public void initFromDate(final Date tDate)
+	public void initFromDate(final Date tDate, boolean bCheckValidity)
   {
   	int iYear  = -1 ;
   	int iMonth = -1 ;
@@ -155,22 +168,28 @@ public class EventDateControl extends HorizontalPanel implements ControlModel, H
   	iMonth = tWorkDate.getMonth() + 1 ;
   	iDay   = tWorkDate.getDate() ;
   	
+  	int iHour  = tWorkDate.getHours() ;
+		int iMin   = tWorkDate.getMinutes() ;
+  	
+  	int iTimeZoneMinutes = tWorkDate.getTimezoneOffset() ;
+  	
   	// Initialize the ListBox
     //
-  	initFromInt(iDay, iMonth, iYear) ;
+  	initFromInt(iDay, iMonth, iYear, bCheckValidity) ;
   }
   
   /**
    * Initialize the 3 ListBox
    *
    */
-  public void initFromInt(final int iDay, final int iMonth, final int iYear)
+  public void initFromInt(final int iDay, final int iMonth, final int iYear, boolean bCheckValidity)
   {
   	initYearListBox(iYear) ;
   	initMonthListBox(iYear, iMonth) ;
   	initDayListBox(iYear, iMonth, iDay) ;
   	
-  	checkIfValid() ;
+  	if (bCheckValidity)
+  		checkIfValid() ;
   }
    
   /**
@@ -1165,6 +1184,10 @@ public class EventDateControl extends HorizontalPanel implements ControlModel, H
 	
 	public boolean getInitFromPrev() {
 		return _base.getInitFromPrev() ;
+	}
+	
+	public void setEdited(boolean bEdited) {
+		_bEdited = bEdited ;
 	}
 	
 	/**

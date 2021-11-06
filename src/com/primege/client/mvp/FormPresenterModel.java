@@ -1269,10 +1269,15 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * @param sCaptionStyle   CSS style for the label
 	 * @param bInitFromPrev   <code>true</code> if the process is to initialize information from the previous form
 	 * @param bInBlockCell    <code>true</code> if the control is to be inserted in the block, <code>false</code> if in label's cell
+	 * @param masterBlock     Form's root panel (if null, then the form global panel is used)
+	 * @param aInformation    Edited data. Must be <code>null</code> for a new form or annotation
 	 *
 	 */
-	public void insertNewControl(final String sControlPath, final String sControlCaption, final String sControlType, final String sControlSubtype, final String sControlUnit, final String sControlValue, final ArrayList<FormControlOptionData> aOptions, final String sControlStyle, final String sCaptionStyle, final boolean bInitFromPrev, final String sExclusion, final boolean bInBlockCell, final boolean bInPdfWhenEmpty, FormBlockPanel masterBlock, FormBlockModel<FormDataData> aInformation) {
-		display.insertNewControl(sControlPath, getEditedInformationForPath(sControlPath, aOptions, aInformation), sControlCaption, sControlType, sControlSubtype, sControlUnit, sControlValue, aOptions, sControlStyle, sCaptionStyle, bInitFromPrev, sExclusion, bInBlockCell, bInPdfWhenEmpty, masterBlock) ;
+	public void insertNewControl(final String sControlPath, final String sControlCaption, final String sControlType, final String sControlSubtype, final String sControlUnit, final String sControlValue, final ArrayList<FormControlOptionData> aOptions, final String sControlStyle, final String sCaptionStyle, final boolean bInitFromPrev, final String sExclusion, final boolean bInBlockCell, final boolean bInPdfWhenEmpty, FormBlockPanel masterBlock, FormBlockModel<FormDataData> aInformation)
+	{
+		boolean bEdited = (null != aInformation) ;
+		
+		display.insertNewControl(sControlPath, getEditedInformationForPath(sControlPath, aOptions, aInformation), sControlCaption, sControlType, sControlSubtype, sControlUnit, sControlValue, aOptions, sControlStyle, sCaptionStyle, bInitFromPrev, sExclusion, bInBlockCell, bInPdfWhenEmpty, masterBlock, bEdited) ;
 	}
 	
 	/**
@@ -1303,6 +1308,9 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	/**
 	 * Get information from a regular path in a given block
 	 *
+	 * @param block    Data to look into (can be <code>null</code>)
+	 * @param sPath    Path to look for
+	 * @param aOptions Options as potential "extensions" to the path
 	 */
 	protected ArrayList<FormDataData> getInformationForRegularPath(final FormBlockModel<FormDataData> block, final String sPath, final ArrayList<FormControlOptionData> aOptions)
 	{

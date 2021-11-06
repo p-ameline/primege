@@ -42,7 +42,7 @@ public interface FormInterfaceModel extends PrimegeBaseInterface
 	void              insertNewBlock(final FormBlockInformation presentation, FormBlockPanel masterBlock) ;
 	// void              updateBlockCaption(final String sType, final String sCaption) ;
 	void              endOfBlock(final boolean bInPdfWhenEmpty, FormBlockPanel masterBlock) ;
-	void              insertNewControl(final String sControlPath, final ArrayList<FormDataData> content, final String sControlCaption, final String sControlType, final String sControlSubtype, final String sControlUnit, final String sControlValue, final ArrayList<FormControlOptionData> aOptions, final String sControlStyle, final String sCaptionStyle, final boolean bInitFromPrev, final String sExclusion, final boolean bInBlockCell, final boolean bInPdfWhenEmpty, FormBlockPanel masterBlock) ;
+	void              insertNewControl(final String sControlPath, final ArrayList<FormDataData> content, final String sControlCaption, final String sControlType, final String sControlSubtype, final String sControlUnit, final String sControlValue, final ArrayList<FormControlOptionData> aOptions, final String sControlStyle, final String sCaptionStyle, final boolean bInitFromPrev, final String sExclusion, final boolean bInBlockCell, final boolean bInPdfWhenEmpty, FormBlockPanel masterBlock, boolean bEdited) ;
 		
 	boolean           getContent(ArrayList<FormDataData> aInformation) ;
 	FormDataData      getContentForPath(final String sPath) ;

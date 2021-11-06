@@ -235,20 +235,20 @@ public class LoginResponseView extends PrimegeBaseDisplay implements LoginRespon
 	@Override
   public void setFormDates(Date tDate)
 	{
-		_MgtFromDate.initFromDate(tDate) ;
-		_MgtToDate.initFromDate(tDate) ;
+		_MgtFromDate.initFromDate(tDate, true) ;
+		_MgtToDate.initFromDate(tDate, true) ;
 	}
 	
 	@Override
   public void setFormDateFrom(Date tDate)
 	{
-		_MgtFromDate.initFromDate(tDate) ;
+		_MgtFromDate.initFromDate(tDate, true) ;
 	}
 	
 	@Override
   public void setFormDateTo(Date tDate)
 	{
-		_MgtToDate.initFromDate(tDate) ;
+		_MgtToDate.initFromDate(tDate, true) ;
 	}
 	
 	@Override

@@ -608,10 +608,13 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	 * @param sControlStyle   CSS style for the control
 	 * @param sCaptionStyle   CSS style for the label
 	 * @param bInitFromPrev   <code>true</code> if the process is to initialize information from the previous form
-	 * @param bInBlockCell    <code>true</code> if the control is to be inserted in the block, <code>false</code> if in label's cell 
+	 * @param bInBlockCell    <code>true</code> if the control is to be inserted in the block, <code>false</code> if in label's cell
+	 * @param bInPdfWhenEmpty <code>true</code> if the control is to be inserted in the PDF, even when empty, <code>false</code> if not
+	 * @param masterBlock     Form's root panel (if null, then the form global panel is used)
+	 * @param bEdited         <code>true</code> if the form is being edited, <code>false</code> if it is new
 	 */
 	@SuppressWarnings("deprecation")
-	public void insertNewGenericControl(final String sControlPath, final ArrayList<FormDataData> aContent, final String sControlCaption, final String sControlType, final String sControlSubtype, final String sControlUnit, final String sControlValue, final ArrayList<FormControlOptionData> aOptions, final String sControlStyle, final String sCaptionStyle, final boolean bInitFromPrev, final String sExclusion, final boolean bInBlockCell, final boolean bInPdfWhenEmpty, FormBlockPanel masterBlock)
+	public void insertNewGenericControl(final String sControlPath, final ArrayList<FormDataData> aContent, final String sControlCaption, final String sControlType, final String sControlSubtype, final String sControlUnit, final String sControlValue, final ArrayList<FormControlOptionData> aOptions, final String sControlStyle, final String sCaptionStyle, final boolean bInitFromPrev, final String sExclusion, final boolean bInBlockCell, final boolean bInPdfWhenEmpty, FormBlockPanel masterBlock, boolean bEdited)
 	{
 		FormBlockPanel referenceBlock = masterBlock ;
 		if (null == referenceBlock)
@@ -757,6 +760,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 			// Not in screenshot mode, insert a date entry control
 			//
 			EventDateControl dateControl = new EventDateControl(null, sControlPath) ;
+			dateControl.setEdited(bEdited) ;
 			
 			if ((null != sControlStyle) && false == "".equals(sControlStyle))
 				dateControl.addStyleName(sControlStyle) ;
@@ -773,6 +777,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 				
 				String sContentToInitialize = "" ;
 				
+/*
 				// Before 10 AM, we suppose that the event occurred the day before
 				//
 				if (tNow.getHours() < 10)
@@ -785,6 +790,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 					sContentToInitialize = GlobalParameters.getDateAsString(tYesterday) ;
 				}
 				else
+*/
 					sContentToInitialize = GlobalParameters.getDateAsString(tNow) ;
 				
 				fakeContent.setValue(sContentToInitialize) ;
