@@ -2,6 +2,7 @@ package com.primege.shared.model ;
 
 import com.google.gwt.user.client.rpc.IsSerializable ;
 import com.google.gwt.xml.client.Element;
+
 import com.primege.shared.GlobalParameters;
 
 /**
@@ -32,9 +33,14 @@ public class Action implements IsSerializable
 	 */
 	public Action(final String sIdentifier, final String sType, final String sCaption, final String sArchetypeID, final Element model) 
 	{
-		_sIdentifier = sIdentifier ;
-		_sType       = sType ;
-		_sCaption    = sCaption ;
+		reset() ;
+		
+		if (null != sIdentifier)
+			_sIdentifier = sIdentifier ;
+		if (null != sType)
+			_sType       = sType ;
+		if (null != sCaption)
+			_sCaption    = sCaption ;
 		
 		_model       = model ;
 		
@@ -46,6 +52,25 @@ public class Action implements IsSerializable
 			} catch (NumberFormatException e) {
 			}
 		}
+	}
+	
+	/**
+	 * Plain vanilla constructor with archetype identifier as an int
+	 */
+	public Action(final String sIdentifier, final String sType, final String sCaption, final int iArchetypeID, final Element model) 
+	{
+		reset() ;
+		
+		if (null != sIdentifier)
+			_sIdentifier = sIdentifier ;
+		if (null != sType)
+			_sType       = sType ;
+		if (null != sCaption)
+			_sCaption    = sCaption ;
+		
+		_model       = model ;
+		
+		_iArchetypeID = iArchetypeID ;
 	}
 	
 	/**
@@ -82,7 +107,7 @@ public class Action implements IsSerializable
 	/**
 	 * Zeros all information
 	 */
-	public void reset() 
+	public void reset()
 	{
 		_sIdentifier  = "" ;
 		_sType        = "" ;

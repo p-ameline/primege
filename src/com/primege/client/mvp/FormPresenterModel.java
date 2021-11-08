@@ -925,7 +925,12 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				String sCaption    = currentElement.getAttribute("caption") ;
 				String sArcheID    = currentElement.getAttribute("archetypeID") ;
 				
-				_aActions.add(new Action(sIdentifier, sType, sCaption, sArcheID, currentElement)) ;
+				// If the "archetypeID" parameter is not specified, it means that this action is managed inside current archetype
+				//
+				if ((null != sArcheID) && (false == sArcheID.isEmpty()))
+					_aActions.add(new Action(sIdentifier, sType, sCaption, sArcheID, currentElement)) ;
+				else
+					_aActions.add(new Action(sIdentifier, sType, sCaption, _iArchetypeId, currentElement)) ;
 				
 				current = currentElement.getNextSibling() ;
 			}
