@@ -7,8 +7,7 @@ import com.google.gwt.dom.client.Style.VerticalAlign;
 import com.google.gwt.user.client.ui.Widget;
 
 /**
- * A Form block panel is a table with a single row and two columns.
- * The left column contains the caption while the right one will be filled with another block and/or a set of controls
+ * Presentation information for a {@link FormBlockPanel} (css style, background color, etc)
  */
 public class FormBlockInformation
 {

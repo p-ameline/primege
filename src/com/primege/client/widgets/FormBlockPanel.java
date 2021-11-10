@@ -1,10 +1,16 @@
 package com.primege.client.widgets;
 
+import java.util.ArrayList;
+
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+
+import com.primege.client.util.FormControl;
+import com.primege.shared.database.FormDataData;
+import com.primege.shared.model.FormBlock;
 
 /**
  * A Form block panel is a table with a single row and two columns.
@@ -13,25 +19,33 @@ import com.google.gwt.user.client.ui.Widget;
 public class FormBlockPanel extends FlexTable
 {
 	// Location in father
-	protected FormBlockPanel _father ;
-	protected int            _iRowInFather ;
+	protected FormBlockPanel          _father ;
+	protected int                     _iRowInFather ;
 	
-	// presentation information
-	protected FormBlockInformation _presentation ;
+	/** presentation information */
+	protected FormBlockInformation    _presentation ;
   
-  // current row for insertion of a control or a child block
-  protected int    _iCurrentRow ;
+  /** current row for insertion of a control or a child block */
+  protected int                     _iCurrentRow ;
   
-  // Label side controls holder
-  protected FlexTable _labelControlsTable ; 
-  protected int       _iCurrentRowInLabel ;
+  /** Label side controls holder */
+  protected FlexTable               _labelControlsTable ; 
+  protected int                     _iCurrentRowInLabel ;
   
   // Sub-blocks management
   //
-  private   int              _blockStackSize ;
-	private   int              _blockStackTop ;
-  private   FormBlockPanel[] _blockStackArr ;
-  //
+  private   int                     _blockStackSize ;
+	private   int                     _blockStackTop ;
+  private   FormBlockPanel[]        _blockStackArr ;
+  
+  /** Action identifier (<code>""</code> if not an annotation panel) */
+  protected String                  _sActionID ;
+  
+  /** Form's information (<code>null</code> for a new form) */
+  protected FormBlock<FormDataData> _editedBlock ;
+  
+  /** Controls (empty except for the master block of a form or an action) */
+  protected ArrayList<FormControl>  _aControls = new ArrayList<FormControl>() ;
   
   /**
    * Default Constructor
@@ -51,6 +65,10 @@ public class FormBlockPanel extends FlexTable
     _labelControlsTable = null ;
     _iCurrentRowInLabel = 0 ;
     
+    _editedBlock        = null ;
+    
+    _sActionID          = "" ;
+    
     initBlockStack(10) ;
   }
 
@@ -64,6 +82,12 @@ public class FormBlockPanel extends FlexTable
     _iCurrentRowInLabel = 0 ;
     
     initBlockStack(10) ;
+    
+    _editedBlock        = null ;
+    
+    _sActionID          = "" ;
+    
+    _aControls.clear() ;
   }
   
   /**
@@ -390,6 +414,33 @@ public class FormBlockPanel extends FlexTable
 	
 	public String getCaptionStyle() {
 		return _presentation.getCaptionStyle() ;
+	}
+	
+	public FormBlock<FormDataData> getEditedBlock() {
+		return _editedBlock ;
+	}
+	public void setEditedBlock(FormBlock<FormDataData> editedBlock) {
+		_editedBlock = editedBlock ;
+	}
+	
+	public String getActionIdentifier() {
+		return _sActionID ;
+	}
+	public void setActionIdentifier(final String sActionID) {
+		_sActionID = sActionID ;
+	}
+	
+	
+	
+	public ArrayList<FormControl> getControls() {
+		return _aControls ;
+	}
+	
+	public void addControl(FormControl control) {
+		if (null == control)
+			return ;
+		
+		_aControls.add(control) ;
 	}
 	
 	/** 

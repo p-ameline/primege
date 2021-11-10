@@ -66,7 +66,6 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	protected int                     _iArchetypeId ;
 	protected Document                _archetype ;
 
-	protected FormBlock<FormDataData> _editedBlock ;
 	protected FormLink                _formLink ;
 	
 	protected boolean                 _bFormAlreadyExist ;
@@ -100,10 +99,10 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	protected ClickHandler            _ActionClickHandler ;
 	
 	@Inject
-	public FormPresenterModel(D                       display, 
-							              final EventBus          eventBus,
-							              final DispatchAsync     dispatcher,
-							              final PrimegeSupervisorModel supervisor) 
+	public FormPresenterModel(D                            display, 
+							              final EventBus               eventBus,
+							              final DispatchAsync          dispatcher,
+							              final PrimegeSupervisorModel supervisor)
 	{
 		super(display, eventBus, dispatcher, supervisor) ;
 		
@@ -115,7 +114,6 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		_iArchetypeId            = -1 ;
 		_archetype               = null ;
 		
-		_editedBlock             = null ;
 		_formLink                = null ;
 		
 		_bFormAlreadyExist       = false ;
@@ -129,16 +127,16 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		_bAllowSaveDraft         = false ;
 		_bInPdfWhenEmpty         = false ;
 		
-		_bHasMailSection         = false ;
-		_sMailTemplate           = "" ;
-		_sMailFrom               = "" ;
-		_sMailCaption            = "" ;
-		
 		_iCurrentDeleteForm      = -1 ;
 		
 		_CheckExistChangeHandler   = null ;
 		_NewAnnotationClickHandler = null ;
 		_ActionClickHandler        = null ;
+		
+		_bHasMailSection           = false ;
+		_sMailTemplate             = "" ;
+		_sMailFrom                 = "" ;
+		_sMailCaption              = "" ;
 			
 		// Don't call bind since it is already called by super PrimegeBasePresenter
 		//
@@ -296,7 +294,6 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	{
 		_iFormId            = -1 ;
 		_sRecordDate        = "" ;
-		_editedBlock        = null ;
 		_formLink           = null ;
 		_archetype          = null ;
 		_iArchetypeId       = -1 ;
@@ -318,12 +315,13 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		_aStatics.clear() ;
 		_aTraits.clear() ;
 		_aActions.clear() ;
+		
 		_aMailAddresses.clear() ;
 		
-		_bHasMailSection         = false ;
-		_sMailTemplate           = "" ;
-		_sMailFrom               = "" ;
-		_sMailCaption            = "" ;
+		_bHasMailSection = false ;
+		_sMailTemplate   = "" ;
+		_sMailFrom       = "" ;
+		_sMailCaption    = "" ;
 	}
 	
 	/**
@@ -355,14 +353,14 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * Get the archetype information from a path, either from user entry or from static information 
 	 * 
 	 * */
-	protected String getValueForPath(String sPath)
+	protected String getValueForPath(String sPath, FormBlockPanel masterBlock)
 	{
 		if ((null == sPath) || "".equals(sPath))
 			return "" ;
 		
 		// Get the information entered in form
 		//
-		FormDataData formData = display.getContentForPath(sPath) ;
+		FormDataData formData = display.getContentForPath(sPath, masterBlock) ;
 		
 		// If no information found in form, get it into static information (if any)
 		//
@@ -376,12 +374,12 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * Get the archetype information from a path as an int, either from user entry or from static information 
 	 * 
 	 * */
-	protected int getIntValueForPath(String sPath)
+	protected int getIntValueForPath(String sPath, FormBlockPanel masterBlock)
 	{
 		if ((null == sPath) || "".equals(sPath))
 			return -1 ;
 		
-		String sValue = getValueForPath(sPath) ;
+		String sValue = getValueForPath(sPath, masterBlock) ;
 		
 		if ("".equals(sValue))
 			return -1 ;
@@ -397,12 +395,12 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * Get the archetype information from a path as a double, either from user entry or from static information 
 	 * 
 	 * */
-	protected double getDoubleValueForPath(final String sPath)
+	protected double getDoubleValueForPath(final String sPath, FormBlockPanel masterBlock)
 	{
 		if ((null == sPath) || "".equals(sPath))
 			return -1 ;
 		
-		String sValue = getValueForPath(sPath) ;
+		String sValue = getValueForPath(sPath, masterBlock) ;
 		
 		if ("".equals(sValue))
 			return -1 ;
@@ -644,7 +642,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				
 				// Create the form
 				//
-				initFormFromArchetypeElement(currentElement, display.getMasterForm(), _editedBlock) ;
+				initFormFromArchetypeElement(currentElement, display.getMasterForm()) ;
 				
 				current = currentElement.getNextSibling() ;
 			}
@@ -654,7 +652,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				
 				Element currentElement = (Element) current ;
 				
-				initTraitsFromArchetypeElement(currentElement) ;
+				initTraitsFromArchetypeElement(currentElement, null) ;
 				
 				current = currentElement.getNextSibling() ;
 			}
@@ -672,10 +670,13 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 			{
 				Log.info("Entering archetype's mail section.") ;
 				
-				_bHasMailSection = true ;
+				// _bHasMailSection = true ;
 				
 				Element currentElement = (Element) current ;
 				
+				initMailFromArchetypeElement(currentElement, null) ;
+				
+				/*
 				_aMailAddresses.clear() ;
 				
 				String sMailTo = currentElement.getAttribute("to") ;
@@ -711,7 +712,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 					}
 					
 					currentNode = currentNode.getNextSibling() ;
-				}
+				}*/
 				
 				current = currentElement.getNextSibling() ;
 			}
@@ -737,28 +738,12 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		displayAnnotationsControls() ;
 	}
 	
-	/**
-	 * Add an attribute Ã  la <code>to="$trainee$"</code> into the list of MailTo
-	 * 
-	 * @param sAttributeName    Attribute name, either to, cc or bcc
-	 * @param sAttributeContent Content in the form of roles separated by a ';'
-	 */
-	protected void addMailsTo(final String sAttributeName, final String sAttributeContent)
+	protected void fillMailInformation(final Element father, FormBlockPanel masterBlock)
 	{
-		if ((null == sAttributeName) || "".equals(sAttributeName) || (null == sAttributeContent) || "".equals(sAttributeContent))
-			return ;
 		
-		MailTo.RecipientType iType = MailTo.RecipientType.Undefined ;
-		
-		if      ("to".equalsIgnoreCase(sAttributeName))
-			iType = MailTo.RecipientType.To ;
-		else if ("cc".equalsIgnoreCase(sAttributeName))
-			iType = MailTo.RecipientType.Cc ;
-		else if ("bcc".equalsIgnoreCase(sAttributeName))
-			iType = MailTo.RecipientType.Bcc ;
-		
-		_aMailAddresses.add(new MailTo(sAttributeContent, iType)) ;
 	}
+	
+	
 	
 	/**
 	 * After the form has been displayed, some subclasses may wish to do something 
@@ -773,11 +758,11 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * Parse sub-levels of an archetype's form section (recursively)
 	 * 
 	 * @param father       XML element the sons of must be processed
-	 * @param masterBlock  Reference panel controls must be built into
+	 * @param masterBlock  The reference panel all controls must be built into
 	 * @param aInformation Edited data. Must be <code>null</code> for a new form or annotation.
 	 *
 	 */
-	protected void initFormFromArchetypeElement(final Element father, FormBlockPanel masterBlock, FormBlockModel<FormDataData> aInformation)
+	protected void initFormFromArchetypeElement(final Element father, FormBlockPanel masterBlock)
 	{
 		if (null == father)
 			return ;
@@ -800,7 +785,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				
 				// Recursive call to initialize block content
 				//
-				initFormFromArchetypeElement(currentElement, masterBlock, aInformation) ;
+				initFormFromArchetypeElement(currentElement, masterBlock) ;
 				
 				display.endOfBlock(_bInPdfWhenEmpty, masterBlock) ;
 				
@@ -858,6 +843,14 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				if ("label_information".equalsIgnoreCase(sCurrentTagName))
 					bInsertInBlock = false ;
 				
+				FormBlockPanel referenceBlock = masterBlock ;
+				if (null == referenceBlock)
+					referenceBlock = display.getMasterForm() ;
+				
+				FormBlock<FormDataData> aInformation = null ;
+				if (null != referenceBlock)
+					aInformation = referenceBlock.getEditedBlock() ;
+				
 				insertNewControl(sControlPath, sControlCaption, sControlType, sControlSubtype, sControlUnit, sControlValue, aOptions, sControlStyle, sCaptionStyle, bInitFromPrev, sExclusion, bInsertInBlock, _bInPdfWhenEmpty, masterBlock, aInformation) ;
 				
 				current = currentElement.getNextSibling() ;
@@ -868,9 +861,97 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	}
 	
 	/**
-	 * Parse sub-levels of an archetype's traits section
+	 * Parse sub-levels of an archetype's mail section
+	 * 
+	 * @param father DOM element that represents the "mail" tag
+	 * @param action If <code>null</code>, applies to the main archetype, if not, to this {@link Action} 
 	 */
-	protected void initTraitsFromArchetypeElement(final Element father)
+	protected void initMailFromArchetypeElement(final Element father, Action action)
+	{
+		if (null == father)
+			return ;
+		
+		String sCurrentTagName = father.getNodeName() ;
+		if (false == "mail".equalsIgnoreCase(sCurrentTagName))
+			return ;
+		
+		Log.info("Entering archetype's mail section.") ;
+		
+		String sMailTo      = father.getAttribute("to") ;
+		String sMailCc      = father.getAttribute("cc") ;
+		String sMailBcc     = father.getAttribute("bcc") ;
+		String sMailFrom    = father.getAttribute("from") ;
+		String sMailCaption = father.getAttribute("caption") ;
+		
+		if (null == action)
+		{
+			_bHasMailSection = true ;
+			_aMailAddresses.clear() ;
+			
+			if (null != sMailTo)
+				addMailsTo("to", sMailTo) ;
+			if (null != sMailCc)
+				addMailsTo("cc", sMailCc) ;
+			if (null != sMailBcc)
+				addMailsTo("bcc", sMailBcc) ;
+			if (null != sMailFrom)
+				_sMailFrom = sMailFrom ;
+			if (null != sMailCaption)
+				_sMailCaption = sMailCaption ;
+		}
+		else
+		{
+			action.setHasMailSection(true) ;
+			action.clearMailAddresses() ;
+			
+			if (null != sMailTo)
+				action.addMailsTo("to", sMailTo) ;
+			if (null != sMailCc)
+				action.addMailsTo("cc", sMailCc) ;
+			if (null != sMailBcc)
+				action.addMailsTo("bcc", sMailBcc) ;
+			if (null != sMailFrom)
+				action.setMailFrom(sMailFrom) ;
+			if (null != sMailCaption)
+				action.setMailCaption(sMailCaption) ;
+		}
+		
+		Node currentNode = father.getFirstChild() ;
+				
+		while (null != currentNode)
+		{
+			String sCurrentNodeTagName = currentNode.getNodeName() ;
+					
+			if ("#cdata-section" == sCurrentNodeTagName)
+			{
+				Log.info("Entering mail's CDATA section.") ;
+						
+				CDATASection cDataSection = (CDATASection) currentNode ;
+				String sMailTemplate = cDataSection.getData() ;
+				
+				if (null != sMailTemplate)
+				{
+					if (null == action)
+						_sMailTemplate = sMailTemplate ;
+					else
+						action.setMailTemplate(sMailTemplate) ;
+				}
+						
+				if (false == sMailTemplate.isEmpty())
+					Log.info("Found a mail template.") ;
+			}
+					
+			currentNode = currentNode.getNextSibling() ;
+		}
+	}
+	
+	/**
+	 * Parse sub-levels of an archetype's traits section
+	 * 
+	 * @param father DOM element that represents the "traits" tag
+	 * @param action If <code>null</code>, applies to the main archetype, if not, to this {@link Action}
+	 */
+	protected void initTraitsFromArchetypeElement(final Element father, Action action)
 	{
 		if (null == father)
 			return ;
@@ -891,7 +972,10 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				String sPath      = currentElement.getAttribute("path") ;
 				String sComposite = currentElement.getAttribute("composite") ;
 				
-				_aTraits.add(new TraitPath(sName, sPath, sComposite)) ;
+				if (null == action)
+					_aTraits.add(new TraitPath(sName, sPath, sComposite)) ;
+				else
+					action.addTrait(new TraitPath(sName, sPath, sComposite)) ;
 				
 				current = currentElement.getNextSibling() ;
 			}
@@ -927,10 +1011,66 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				
 				// If the "archetypeID" parameter is not specified, it means that this action is managed inside current archetype
 				//
+				Action newAction = null ;
+				
 				if ((null != sArcheID) && (false == sArcheID.isEmpty()))
-					_aActions.add(new Action(sIdentifier, sType, sCaption, sArcheID, currentElement)) ;
+					newAction = new Action(sIdentifier, sType, sCaption, sArcheID, currentElement) ;
 				else
-					_aActions.add(new Action(sIdentifier, sType, sCaption, _iArchetypeId, currentElement)) ;
+					newAction = new Action(sIdentifier, sType, sCaption, _iArchetypeId, currentElement) ;
+				
+				// Parse the tags that are different from "block" (which is parsed on demand when creating controls)
+				//
+				initActionsExtensionsFromArchetypeElement(currentElement, newAction) ;
+				
+				_aActions.add(newAction) ;
+				
+				current = currentElement.getNextSibling() ;
+			}
+			else
+				current = current.getNextSibling() ;
+		}
+	}
+	
+	/**
+	 * Parse complementary information in archetype's actions section
+	 * 
+	 * @param father      DOM element that represents the "action" tag
+	 * @param masterBlock {@link FormBlockPanel} this action is instantiated into
+	 */
+	protected void initActionsExtensionsFromArchetypeElement(final Element father, Action action)
+	{
+		if ((null == father) || (null == action))
+			return ;
+		
+		String sFatherTagName = father.getNodeName() ;
+		if (false == "action".equalsIgnoreCase(sFatherTagName))
+			return ;
+		
+		Node current = father.getFirstChild() ;
+		
+		while (null != current)
+		{
+			String sCurrentTagName = current.getNodeName() ;
+			
+			if ("traits".equalsIgnoreCase(sCurrentTagName))
+			{
+				Log.info("Entering archetype's traits section.") ;
+				
+				Element currentElement = (Element) current ;
+				
+				initTraitsFromArchetypeElement(currentElement, action) ;
+				
+				current = currentElement.getNextSibling() ;
+			}
+			else if ("mail".equalsIgnoreCase(sCurrentTagName))
+			{
+				Log.info("Entering archetype's mail section.") ;
+				
+				// _bHasMailSection = true ;
+				
+				Element currentElement = (Element) current ;
+				
+				initMailFromArchetypeElement(currentElement, action) ;
 				
 				current = currentElement.getNextSibling() ;
 			}
@@ -946,7 +1086,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	{
 		// Annotations are not available for a new document
 		//
-		if (null == _editedBlock)
+		if (null == getEditedBlock())
 			return ;
 		
 		if (_aActions.isEmpty())
@@ -995,12 +1135,12 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	{
 		display.initializeActionHistory() ;
 		
-		if (null == _editedBlock)
+		if (null == getEditedBlock())
 			return ;
 		
 		createActionsClickHandler() ;
 		
-		ArrayList<FormLink> aLinks = _editedBlock.getLinks() ;
+		ArrayList<FormLink> aLinks = getEditedBlock().getLinks() ;
 		if ((null == aLinks) || aLinks.isEmpty())
 			return ;
 		
@@ -1079,11 +1219,47 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		{
 			public void onClick(final ClickEvent event) 
 			{
-				Widget sender = (Widget) event.getSource() ;
-				String sArchetypeId = display.getNewAnnotationID(sender) ;
-				addNewAnnotation(sArchetypeId) ;
+				Widget button = (Widget) event.getSource() ;
+				String sActionType = display.getActionButtonType(button) ;
+				if (false == sActionType.isEmpty())
+				{
+					int iFormId = display.getActionButtonFormID(button) ;
+					executeAction(sActionType, iFormId) ;
+				}
 			}
 		} ;
+	}
+	
+	/**
+	 * Execute an action on an annotation
+	 * 
+	 * @param sActionType Action type
+	 * @param iFormId     Identifier of the form this action applies to
+	 */
+	protected void executeAction(final String sActionType, final int iFormId)
+	{
+		if ((null == sActionType) || sActionType.isEmpty())
+			return ;
+		
+		if ("action_save".equals(sActionType))
+		{
+			saveAnnotation(iFormId, false) ;
+			return ;
+		}
+		if ("action_draft".equals(sActionType))
+		{
+			saveAnnotation(iFormId, true) ;
+			return ;
+		}
+	}
+	
+	/**
+	 * Save an annotation - to be redefined by sub-classes
+	 * 
+	 * @param iFormId  Identifier of the form to save (<code>-1</code> if a new form)
+	 * @param bIsDraft If <code>true</code>, then save as a draft, if <code>false</code> save as a valid form
+	 */
+	protected void saveAnnotation(final int iFormId, boolean bIsDraft) {
 	}
 	
 	/**
@@ -1118,7 +1294,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		
 		// Populate the panel with action's interface elements
 		//
-		initFormFromArchetypeElement(selectedAction.getModel(), actionRootBlock, null) ;
+		initFormFromArchetypeElement(selectedAction.getModel(), actionRootBlock) ;
 	}
 	
 	protected Action getActionFromId(final String sID)
@@ -1299,7 +1475,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 *
 	 */
 	protected ArrayList<FormDataData> getEditedInformationForRegularPath(final String sPath, final ArrayList<FormControlOptionData> aOptions) {
-		return getInformationForRegularPath(_editedBlock, sPath, aOptions) ;
+		return getInformationForRegularPath(getEditedBlock(), sPath, aOptions) ;
 	}
 	
 	/**
@@ -1390,7 +1566,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * @return <code>true</code> if we find information which path is in the form path/#N
 	 */
 	protected boolean hasMultipleInformationPath(final String sPath) {
-		return hasMultipleInformationPath(_editedBlock, sPath) ;
+		return hasMultipleInformationPath(getEditedBlock(), sPath) ;
 	}
 	
 	/**
@@ -1424,7 +1600,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		if (null == previousBlock)
 			return ;
 		
-		ArrayList<FormControl> aControls = display.getControls() ;
+		ArrayList<FormControl> aControls = display.getControls(null) ;
 		if ((null == aControls) || aControls.isEmpty())
 			return ;
 		
@@ -1513,7 +1689,63 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		
 		return "" ;
 	}
-
+	
+	/**
+	 * Shortcut to get edited information (<code>null</code> for a new form)
+	 */
+	public FormBlock<FormDataData> getEditedBlock()
+	{
+		if (null == display.getMasterForm())
+			return null ;
+		
+		return display.getMasterForm().getEditedBlock() ;
+	}
+	
+	/**
+	 * Shortcut to set edited information
+	 */
+	public void setEditedBlock(FormBlock<FormDataData> editedBlock)
+	{
+		if (null == display.getMasterForm())
+			return ;
+		
+		display.getMasterForm().setEditedBlock(editedBlock) ;
+	}
+	
+	/**
+	 * Add an attribute à la <code>to="$trainee$"</code> into the list of MailTo
+	 * 
+	 * @param sAttributeName    Attribute name, either to, cc or bcc
+	 * @param sAttributeContent Content in the form of roles separated by a ';'
+	 */
+	public void addMailsTo(final String sAttributeName, final String sAttributeContent) {
+		FormPresenterModel.addMailsTo(_aMailAddresses, sAttributeName, sAttributeContent) ;
+	}
+	
+	/**
+	 * Add an attribute à la <code>to="$trainee$"</code> into the list of MailTo
+	 * 
+	 * @param aMailAddresses    List to add the new information to
+	 * @param sAttributeName    Attribute name, either to, cc or bcc
+	 * @param sAttributeContent Content in the form of roles separated by a ';'
+	 */
+	public static void addMailsTo(ArrayList<MailTo> aMailAddresses, final String sAttributeName, final String sAttributeContent)
+	{
+		if ((null == sAttributeName) || "".equals(sAttributeName) || (null == sAttributeContent) || "".equals(sAttributeContent))
+			return ;
+		
+		MailTo.RecipientType iType = MailTo.RecipientType.Undefined ;
+		
+		if      ("to".equalsIgnoreCase(sAttributeName))
+			iType = MailTo.RecipientType.To ;
+		else if ("cc".equalsIgnoreCase(sAttributeName))
+			iType = MailTo.RecipientType.Cc ;
+		else if ("bcc".equalsIgnoreCase(sAttributeName))
+			iType = MailTo.RecipientType.Bcc ;
+		
+		aMailAddresses.add(new MailTo(sAttributeContent, iType)) ;
+	}
+	
 	/**
 	 * Going back to the page the "new form" or "edit form" action was executed from
 	 */

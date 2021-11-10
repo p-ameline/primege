@@ -54,7 +54,7 @@ public class FormView extends FormViewModel implements FormPresenter.Display
 	{
 		FormBlockPanel referenceBlock = masterBlock ;
 		if (null == referenceBlock)
-			referenceBlock = _formPannel ;
+			referenceBlock = _formPanel ;
 		
 		// Get the panel to add the control to
 		// 
@@ -103,7 +103,7 @@ public class FormView extends FormViewModel implements FormPresenter.Display
 			else
 				dateControl.setContent(content, sControlValue) ;
 			
-			_aControls.add(new FormControl(dateControl.getControlBase(), dateControl, content, sExclusion)) ;
+			referenceBlock.addControl(new FormControl(dateControl.getControlBase(), dateControl, content, sExclusion)) ;
 			currentBlock.insertControl(sControlCaption, sCaptionStyle, dateControl, dateControl.getControlBase(), bInBlockCell) ;
 		}
 		else if ("EventCity".equalsIgnoreCase(sControlType))
@@ -118,7 +118,7 @@ public class FormView extends FormViewModel implements FormPresenter.Display
 			
 			cityControl.setInitFromPrev(bInitFromPrev) ;
 			
-			_aControls.add(new FormControl(cityControl.getControlBase(), cityControl, content, sExclusion)) ;
+			referenceBlock.addControl(new FormControl(cityControl.getControlBase(), cityControl, content, sExclusion)) ;
 			currentBlock.insertControl(sControlCaption, sCaptionStyle, cityControl, cityControl.getControlBase(), bInBlockCell) ;
 		}
 		else
@@ -128,7 +128,7 @@ public class FormView extends FormViewModel implements FormPresenter.Display
 	@Override
 	public HasChangeHandlers getCityChanged() 
 	{
-		Widget widget = getControlForPath("$city$") ;
+		Widget widget = getControlForPath("$city$", null) ;
 		if (null == widget)
 			return null ;
 		
@@ -145,7 +145,7 @@ public class FormView extends FormViewModel implements FormPresenter.Display
 	@Override
 	public void setEventDate(String sStartDate) 
 	{
-		Widget dateWidget = getControlForPath("$date$") ;
+		Widget dateWidget = getControlForPath("$date$", null) ;
 		if (null == dateWidget)
 			return ;
 	

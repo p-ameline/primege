@@ -1,12 +1,15 @@
 package com.primege.shared.model ;
 
+import java.util.ArrayList;
+
 import com.google.gwt.user.client.rpc.IsSerializable ;
 import com.google.gwt.xml.client.Element;
-
+import com.primege.client.mvp.FormPresenterModel;
 import com.primege.shared.GlobalParameters;
+import com.primege.shared.util.MailTo;
 
 /**
- * A document workflow action
+ * Model of document workflow action
  * 
  * Created: 17 August 2021
  * Author: PA
@@ -14,12 +17,21 @@ import com.primege.shared.GlobalParameters;
  */
 public class Action implements IsSerializable 
 {
-	protected String  _sIdentifier ;
-	protected String  _sType ;
-	protected String  _sCaption ;
-	protected int     _iArchetypeID ;
+	protected String               _sIdentifier ;
+	protected String               _sType ;
+	protected String               _sCaption ;
+	protected int                  _iArchetypeID ;
 	
-	protected Element _model ;
+	/** DOM element for the "action" tag inside archetype's "actions" section */
+	protected Element              _model ;
+	
+	protected ArrayList<TraitPath> _aTraits  = new ArrayList<TraitPath>() ;
+	
+	protected boolean              _bHasMailSection ;
+	protected String               _sMailTemplate ;
+	protected String               _sMailFrom ;
+	protected ArrayList<MailTo>    _aMailAddresses = new ArrayList<MailTo>() ;
+	protected String               _sMailCaption ;
 	
 	/**
 	 * Default constructor (with zero information)
@@ -68,7 +80,7 @@ public class Action implements IsSerializable
 		if (null != sCaption)
 			_sCaption    = sCaption ;
 		
-		_model       = model ;
+		_model        = model ;
 		
 		_iArchetypeID = iArchetypeID ;
 	}
@@ -96,12 +108,22 @@ public class Action implements IsSerializable
 		
 		if (null == model)
 			return ;
-
+		
 		_sIdentifier  = model._sIdentifier ;
 		_sType        = model._sType ;
 		_sCaption     = model._sCaption ;
 		_iArchetypeID = model._iArchetypeID ;
+		
 		_model        = model._model ;
+		
+		_aTraits.addAll(model._aTraits) ;
+		
+		_aMailAddresses.addAll(model._aMailAddresses) ;
+		
+		_bHasMailSection = model._bHasMailSection ;
+		_sMailTemplate   = model._sMailTemplate ;
+		_sMailFrom       = model._sMailFrom ;
+		_sMailCaption    = model._sMailCaption ;
 	}
 		
 	/**
@@ -113,7 +135,17 @@ public class Action implements IsSerializable
 		_sType        = "" ;
 		_sCaption     = "" ;
 		_iArchetypeID = -1 ;
+		
 		_model        = null ;
+		
+		_aTraits.clear() ;
+		
+		_aMailAddresses.clear() ;
+		
+		_bHasMailSection = false ;
+		_sMailTemplate   = "" ;
+		_sMailFrom       = "" ;
+		_sMailCaption    = "" ;
 	}
 	
 	/**
@@ -165,6 +197,71 @@ public class Action implements IsSerializable
 	public void setModel(final Element model) {
 		_model = model ;
   }
+	
+	public ArrayList<TraitPath> getTraits() {
+		return _aTraits ;
+	}
+	
+	public void addTrait(TraitPath trait)
+	{
+		if ((null == trait) || _aTraits.contains(trait))
+			return ;
+		
+		_aTraits.add(trait) ;
+	}
+	
+	public boolean hasMailSection() {
+		return _bHasMailSection ;
+	}
+	public void setHasMailSection(boolean bHasMailSection) {
+		_bHasMailSection = bHasMailSection ;
+	}
+	
+	public String getMailTemplate() {
+		return _sMailTemplate ;
+	}
+	public void setMailTemplate(final String sMailTemplate) {
+		_sMailTemplate = sMailTemplate ;
+	}
+	
+	public String getMailFrom() {
+		return _sMailFrom ;
+	}
+	public void setMailFrom(final String sMailFrom) {
+		_sMailFrom = sMailFrom ;
+	}
+	
+	public String getMailCaption() {
+		return _sMailCaption ;
+	}
+	public void setMailCaption(final String sMailCaption) {
+		_sMailCaption = sMailCaption ;
+	}
+	
+	public ArrayList<MailTo> getMailAddresses() {
+		return _aMailAddresses ;
+	}
+	
+	public void addMailAddress(MailTo address) {
+		if (null == address)
+			return ;
+		
+		_aMailAddresses.add(address) ;
+	}
+	
+	/**
+	 * Add an attribute à la <code>to="$trainee$"</code> into the list of MailTo
+	 * 
+	 * @param sAttributeName    Attribute name, either to, cc or bcc
+	 * @param sAttributeContent Content in the form of roles separated by a ';'
+	 */
+	public void addMailsTo(final String sAttributeName, final String sAttributeContent) {
+		FormPresenterModel.addMailsTo(_aMailAddresses, sAttributeName, sAttributeContent) ;
+	}
+	
+	public void clearMailAddresses() {
+		_aMailAddresses.clear() ;
+	}
 	
 	/**
 	 * Determine whether two TraitPath are exactly similar

@@ -42,7 +42,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	protected boolean                _bScreenShotMode ;
 	
 	private   VerticalPanel          _globalPanel ;
-	protected FormBlockPanel         _formPannel ;
+	protected FormBlockPanel         _formPanel ;
 	
 	protected FlowPanel              _actionsCommandPannel ;
 	protected FlowPanel              _actionsButtonsPannel ;
@@ -63,7 +63,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	private   Button                 _DeleteConfirmationDialogBoxOkButton ;
 	private   Button                 _DeleteConfirmationDialogBoxCancelButton ;
 		
-	protected ArrayList<FormControl> _aControls = new ArrayList<FormControl>() ;
+	
 	
 	protected final PrimegeSupervisorModel _supervisor ;
 				
@@ -92,8 +92,8 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 		
 		// Initialize form panel
 		//
-		_formPannel = new FormBlockPanel(new FormBlockInformation(null)) ;
-		_formPannel.addStyleName("formBlockPanel") ;
+		_formPanel = new FormBlockPanel(new FormBlockInformation(null)) ;
+		_formPanel.addStyleName("formBlockPanel") ;
 		
 		// Initialize the global panel
 		//
@@ -101,7 +101,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 		// _globalPanel.setWidth("100%");
 		_globalPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER) ;
 		_globalPanel.addStyleName("formGlobalPanel") ;
-		_globalPanel.add(_formPannel) ;
+		_globalPanel.add(_formPanel) ;
 		_globalPanel.add(buttonsPanel) ;
 		
 		// Initialize dialog boxes 
@@ -125,8 +125,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	{
 		_bScreenShotMode = false ;
 		
-		_formPannel.reset() ;
-		_aControls.clear() ;
+		_formPanel.reset() ;
 		
 		resetAnnotations() ;
 	}
@@ -161,16 +160,20 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	 * @return <code>true</code> if all mandatory controls contained information, <code>false</code> if not
 	 */
 	@Override
-	public boolean getContent(ArrayList<FormDataData> aInformation) 
+	public boolean getContent(ArrayList<FormDataData> aInformation, FormBlockPanel masterBlock) 
 	{
 		if (null == aInformation)
 			return false ;
 	
+		FormBlockPanel referenceBlock = masterBlock ;
+		if (null == referenceBlock)
+			referenceBlock = _formPanel ;
+		
 		aInformation.clear() ; 
 		
 		boolean bEveryControlFilled = true ;
 		
-		for (FormControl formControl : _aControls)
+		for (FormControl formControl : referenceBlock.getControls())
 		{
 			if (formControl.isInformationProvider())
 			{
@@ -263,7 +266,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 		
 		String sPath = formControl.getPath() ;
 		
-		for (FormControl otherFormControl : _aControls)
+		for (FormControl otherFormControl : _formPanel.getControls())
 		{
 			if (otherFormControl.isInformationProvider())
 			{
@@ -284,40 +287,43 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	 * 
 	 * @return The {@link FormControl} is found, <code>null</code> if not
 	 */
-	public FormControl getFormControlForPath(final String sPath)
+	public FormControl getFormControlForPath(final String sPath, FormBlockPanel masterBlock)
 	{
 		if ((null == sPath) || "".equals(sPath))
 			return null ;
 		
-		for (FormControl formControl : _aControls)
+		FormBlockPanel referenceBlock = masterBlock ;
+		if (null == referenceBlock)
+			referenceBlock = _formPanel ;
+		
+		for (FormControl formControl : referenceBlock.getControls())
 			if (formControl.getPath().equals(sPath))
 				return formControl ;
 		
 		return null ;
 	}
-
 	
 	/** 
 	 * Get the {@link FormDataData} contained in the {@link FormControl} defined by a path
 	 */
-	public FormDataData getContentForPath(final String sPath)
+	public FormDataData getContentForPath(final String sPath, FormBlockPanel masterBlock)
 	{
 		if ((null == sPath) || "".equals(sPath))
 			return null ;
 		
-		FormControl formControl = getFormControlForPath(sPath) ;
+		FormControl formControl = getFormControlForPath(sPath, masterBlock) ;
 		if (null == formControl)
 			return null ;
 		
 		return getInformationFromControl(formControl) ;
 	}
 	
-	public void emptyContentForPath(final String sPath)
+	public void emptyContentForPath(final String sPath, FormBlockPanel masterBlock)
 	{
 		if ((null == sPath) || "".equals(sPath))
 			return ;
 		
-		FormControl formControl = getFormControlForPath(sPath) ;
+		FormControl formControl = getFormControlForPath(sPath, masterBlock) ;
 		if (null == formControl)
 			return ;
 		
@@ -520,7 +526,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	{
 		FormBlockPanel referenceBlock = masterBlock ;
 		if (null == referenceBlock)
-			referenceBlock = _formPannel ;
+			referenceBlock = _formPanel ;
 		
 		if (referenceBlock.isBlockStackEmpty())
 			return referenceBlock ;
@@ -539,7 +545,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	{
 		FormBlockPanel referenceBlock = masterBlock ;
 		if (null == referenceBlock)
-			referenceBlock = _formPannel ;
+			referenceBlock = _formPanel ;
 		
 		FormBlockPanel newBlock = new FormBlockPanel(presentation) ;
 		
@@ -572,7 +578,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	{
 		FormBlockPanel referenceBlock = masterBlock ;
 		if (null == referenceBlock)
-			referenceBlock = _formPannel ;
+			referenceBlock = _formPanel ;
 		
 		// In screenshot mode, we have to check  remove the new block if empty
 		//
@@ -618,7 +624,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	{
 		FormBlockPanel referenceBlock = masterBlock ;
 		if (null == referenceBlock)
-			referenceBlock = _formPannel ;
+			referenceBlock = _formPanel ;
 		
 		// Get the panel to add the control to
 		// 
@@ -662,7 +668,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 				if ((null != sControlStyle) && false == "".equals(sControlStyle))
 					box.addStyleName(sControlStyle) ;
 				
-				_aControls.add(new FormControl(box.getControlBase(), box, content, sExclusion)) ;
+				referenceBlock.addControl(new FormControl(box.getControlBase(), box, content, sExclusion)) ;
 				
 				if ((null == sControlUnit) || "".equals(sControlUnit))
 					currentBlock.insertControl(sControlCaption, sCaptionStyle, box, box.getControlBase(), bInBlockCell) ;
@@ -685,7 +691,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 				box.setContent(content, sControlValue) ;
 				box.setInitFromPrev(bInitFromPrev) ;
 				
-				_aControls.add(new FormControl(box.getControlBase(), box, content, sExclusion)) ;
+				referenceBlock.addControl(new FormControl(box.getControlBase(), box, content, sExclusion)) ;
 				currentBlock.insertControl(sControlCaption, sCaptionStyle, box, box.getControlBase(), bInBlockCell) ;
 			}
 		}
@@ -723,7 +729,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 			text.setContent(content, sControlValue) ;
 			text.setInitFromPrev(bInitFromPrev) ;
 			
-			_aControls.add(new FormControl(text.getControlBase(), text, content, sExclusion)) ;
+			referenceBlock.addControl(new FormControl(text.getControlBase(), text, content, sExclusion)) ;
 			currentBlock.insertControl(sControlCaption, sCaptionStyle, text, text.getControlBase(), bInBlockCell) ;
 		}
 		else if ("Date".equalsIgnoreCase(sControlType))
@@ -799,7 +805,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 			else
 				dateControl.setContent(content, sControlValue) ;
 			
-			_aControls.add(new FormControl(dateControl.getControlBase(), dateControl, content, sExclusion)) ;
+			referenceBlock.addControl(new FormControl(dateControl.getControlBase(), dateControl, content, sExclusion)) ;
 			currentBlock.insertControl(sControlCaption, sCaptionStyle, dateControl, dateControl.getControlBase(), bInBlockCell) ;
 		}
 		else if ("RadioButton".equalsIgnoreCase(sControlType))
@@ -848,7 +854,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 			radioControl.setContent(content, sControlValue) ;
 			radioControl.setInitFromPrev(bInitFromPrev) ;
 			
-			_aControls.add(new FormControl(radioControl.getControlBase(), radioControl, content, sExclusion)) ;
+			referenceBlock.addControl(new FormControl(radioControl.getControlBase(), radioControl, content, sExclusion)) ;
 			currentBlock.insertControl(sControlCaption, sCaptionStyle, radioControl, radioControl.getControlBase(), bInBlockCell) ;
 		}
 		else if ("CheckBox".equalsIgnoreCase(sControlType))
@@ -882,7 +888,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 			checkBox.setContent(content, sControlValue) ;
 			checkBox.setInitFromPrev(bInitFromPrev) ;
 			
-			_aControls.add(new FormControl(checkBox.getControlBase(), checkBox, content, sExclusion)) ;
+			referenceBlock.addControl(new FormControl(checkBox.getControlBase(), checkBox, content, sExclusion)) ;
 			currentBlock.insertControl("", sCaptionStyle, checkBox, checkBox.getControlBase(), bInBlockCell) ;
 		}
 		else if ("ListBox".equalsIgnoreCase(sControlType))
@@ -933,7 +939,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 			listBox.setContent(content, sControlValue) ;
 			listBox.setInitFromPrev(bInitFromPrev) ;
 			
-			_aControls.add(new FormControl(listBox.getControlBase(), listBox, content, sExclusion)) ;
+			referenceBlock.addControl(new FormControl(listBox.getControlBase(), listBox, content, sExclusion)) ;
 			currentBlock.insertControl(sControlCaption, sCaptionStyle, listBox, listBox.getControlBase(), bInBlockCell) ;
 		}
 		else if ("StaticButton".equalsIgnoreCase(sControlType))
@@ -948,7 +954,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 			if ((null != sControlStyle) && false == "".equals(sControlStyle))
 				staticButton.addStyleName(sControlStyle) ;
 			
-			_aControls.add(new FormControl(staticButton.getControlBase(), staticButton, content, false, false)) ;
+			referenceBlock.addControl(new FormControl(staticButton.getControlBase(), staticButton, content, false, false)) ;
 			currentBlock.insertControl(sControlCaption, sCaptionStyle, staticButton, staticButton.getControlBase(), bInBlockCell) ;
 		}
 		else if ("Table".equalsIgnoreCase(sControlType))
@@ -979,7 +985,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 			tableControl.setMultipleContent(aContent, sControlValue) ;
 			tableControl.setInitFromPrev(bInitFromPrev) ;
 			
-			_aControls.add(new FormControl(tableControl.getControlBase(), tableControl, aContent, sExclusion)) ;
+			referenceBlock.addControl(new FormControl(tableControl.getControlBase(), tableControl, aContent, sExclusion)) ;
 			currentBlock.insertControl(sControlCaption, sCaptionStyle, tableControl, tableControl.getControlBase(), bInBlockCell) ;
 		}
 	}
@@ -987,15 +993,19 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	/**
 	 * Disable sub controls for inactive controls
 	 */
-	public void inactivateInactiveControlsSiblings()
+	public void inactivateInactiveControlsSiblings(FormBlockPanel masterBlock)
 	{
-		for (FormControl control : _aControls)
+		FormBlockPanel referenceBlock = masterBlock ;
+		if (null == referenceBlock)
+			referenceBlock = _formPanel ;
+		
+		for (FormControl control : referenceBlock.getControls())
 		{
 			FormDataData content = control.getContent() ;
 			if ((null == content) || content.isEmpty())
 			{
 				String sPath = control.getPath() ;
-				for (FormControl otherControl : _aControls)
+				for (FormControl otherControl : referenceBlock.getControls())
 				{
 					String sOtherPath = otherControl.getPath() ;
 					if ((false == sOtherPath.equals(sPath)) && sOtherPath.startsWith(sPath))
@@ -1028,12 +1038,19 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	 * @return the control as a widget if found, <code>null</code> if not
 	 */
 	@Override
-	public Widget getControlForPath(final String sControlPath) 
+	public Widget getControlForPath(final String sControlPath, FormBlockPanel masterBlock) 
 	{
-		if ((null == sControlPath) || "".equals(sControlPath) || _aControls.isEmpty())
+		if ((null == sControlPath) || "".equals(sControlPath))
 			return null ;
 		
-		for (FormControl formControl : _aControls)
+		FormBlockPanel referenceBlock = masterBlock ;
+		if (null == referenceBlock)
+			referenceBlock = _formPanel ;
+		
+		if (referenceBlock.getControls().isEmpty())
+			return null ;
+		
+		for (FormControl formControl : referenceBlock.getControls())
 			if (sControlPath.equals(formControl.getPath()))
 				return formControl.getWidget() ;
 		
@@ -1048,12 +1065,19 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	 * @return the control if found, <code>null</code> if not
 	 */
 	@Override
-	public FormControl getPlainControlForPath(final String sControlPath) 
+	public FormControl getPlainControlForPath(final String sControlPath, FormBlockPanel masterBlock) 
 	{
-		if ((null == sControlPath) || "".equals(sControlPath) || _aControls.isEmpty())
+		if ((null == sControlPath) || "".equals(sControlPath))
 			return null ;
 		
-		for (FormControl formControl : _aControls)
+		FormBlockPanel referenceBlock = masterBlock ;
+		if (null == referenceBlock)
+			referenceBlock = _formPanel ;
+		
+		if (referenceBlock.getControls().isEmpty())
+			return null ;
+		
+		for (FormControl formControl : referenceBlock.getControls())
 			if (sControlPath.equals(formControl.getPath()))
 				return formControl ;
 		
@@ -1109,7 +1133,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	@Override
 	public HasChangeHandlers getDateChanged()
 	{
-		Widget widget = getControlForPath("$date$") ;
+		Widget widget = getControlForPath("$date$", null) ;
 		if (null == widget)
 			return null ;
 		
@@ -1130,7 +1154,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	@Override
 	public HasClickHandlers getInitFromPreviousButton()
 	{
-		Widget btnAsWidget = getControlForPath("$initFromPrev$") ;
+		Widget btnAsWidget = getControlForPath("$initFromPrev$", null) ;
 		if (null == btnAsWidget)
 			return null ;
 		
@@ -1138,8 +1162,13 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	}
 	
 	@Override
-	public ArrayList<FormControl> getControls() {
-		return _aControls ;
+	public ArrayList<FormControl> getControls(FormBlockPanel masterBlock)
+	{
+		FormBlockPanel referenceBlock = masterBlock ;
+		if (null == referenceBlock)
+			referenceBlock = _formPanel ;
+		
+		return referenceBlock.getControls() ;
 	}
 	
 	@Override
@@ -1171,6 +1200,9 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   	
   	// If not already existing, create it
   	//
+  	
+  	// Create command panel
+  	//
   	FlowPanel commandPanel = new FlowPanel() ;
   	commandPanel.addStyleName("annotationCommandPanel") ;
   	
@@ -1180,12 +1212,18 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   		commandPanel.add(captionLabel) ;
   	}
   	
+  	// Create bloc panel
+  	//
   	FormBlockPanel newBlock = new FormBlockPanel(new FormBlockInformation(null)) ;
   	newBlock.addStyleName("formBlockPanel") ;
   	
+  	// Create buttons panel
+  	//
   	FlowPanel buttonsPanel = new FlowPanel() ;
 		buttonsPanel.addStyleName("formButtonsPanel") ;
   	
+		// Create the global action panel
+		//
   	VerticalPanel actionPanel = new VerticalPanel() ;
   	actionPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER) ;
   	actionPanel.addStyleName("formAnnotationPanel") ;
@@ -1243,7 +1281,8 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
    * 
    * @return The {@link FormBlockPanel} if found, <code>null</code> if not
    */
-  protected FormBlockPanel getActionFromAnnotationID(final int iAnnotationID)
+  @Override
+  public FormBlockPanel getActionFromAnnotationID(final int iAnnotationID)
   {
   	if ((null == _aActions) || _aActions.isEmpty())
   		return null ;
@@ -1338,6 +1377,74 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 		return "" ;
 	}
 	
+	/**
+	 * Get widget's action type
+	 */
+	public String getActionButtonType(Widget actionButton)
+	{
+		if (null == actionButton)
+			return "" ;
+		
+		String sButtonId = actionButton.getElement().getAttribute("id") ;
+		if (sButtonId.isEmpty())
+			return "" ;
+		
+		if (sButtonId.startsWith("action_save"))
+			return "action_save" ;
+		if (sButtonId.startsWith("action_draft"))
+			return "action_draft" ;
+		if (sButtonId.startsWith("action_cancel"))
+			return "action_cancel" ;
+		
+		if (sButtonId.startsWith("action_edit"))
+			return "action_edit" ;
+		if (sButtonId.startsWith("action_delete"))
+			return "action_delete" ;
+		
+		return "" ;
+	}
+	
+	/**
+	 * Get the form identifier an action buttons applies to
+	 * 
+	 * @param actionButton The Widget to get information from
+	 * 
+	 * @return <code>-2</code> if failed, the form identifier if successful
+	 * 
+	 */
+	@Override
+	public int getActionButtonFormID(Widget actionButton)
+	{
+		if (null == actionButton)
+			return -2 ;
+		
+		String sButtonId = actionButton.getElement().getAttribute("id") ;
+		if (sButtonId.isEmpty())
+			return -2 ;
+		
+		// Action buttons' id is in the form "action-type-id" + form identifier (example: action_edit-id225)
+		//
+		// We get the action type to find what follows
+		//
+		String sActionType = getActionButtonType(actionButton) ;
+		if (sActionType.isEmpty())
+			return -2 ;
+		
+		int iActionTypeLen = sActionType.length() ;
+		String sNext = sButtonId.substring(iActionTypeLen) ;
+		
+		// We get what is after "-id" and return it as an int
+		//
+		if ((false == sNext.startsWith("-id")) || (sNext.length() < 4))
+			return -2 ;
+		
+		try {
+			return Integer.parseInt(sNext.substring(3)) ;
+		} catch (NumberFormatException e) {
+			return -2 ;
+		}
+	}
+	
 	/** 
 	 * The button Id is in the form "action-id" + iArchetypeId; we must parse it to return the 
 	 * archetype ID as an int
@@ -1380,6 +1487,6 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   
   @Override
   public FormBlockPanel getMasterForm() {
-  	return _formPannel ;
+  	return _formPanel ;
   }
 }
