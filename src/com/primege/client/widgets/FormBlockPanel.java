@@ -430,8 +430,6 @@ public class FormBlockPanel extends FlexTable
 		_sActionID = sActionID ;
 	}
 	
-	
-	
 	public ArrayList<FormControl> getControls() {
 		return _aControls ;
 	}

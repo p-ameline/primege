@@ -30,9 +30,9 @@ public class FormData extends FormDataModel implements IsSerializable
 	/**
 	 * Plain vanilla constructor 
 	 */
-	public FormData(int iID, final String sRoot, int iEventID, int iCityID, int iSiteID, String sEventDate, int iAuthorID, String sEntryDateHour, int iArchetypeID, FormStatus iStatus) 
+	public FormData(int iID, final String sActionId, final String sRoot, int iEventID, int iCityID, int iSiteID, String sEventDate, int iAuthorID, String sEntryDateHour, int iArchetypeID, FormStatus iStatus) 
 	{
-		super(iID, sRoot, iAuthorID, sEntryDateHour, iArchetypeID, iStatus) ;
+		super(iID, sActionId, sRoot, iAuthorID, sEntryDateHour, iArchetypeID, iStatus) ;
 		
 		_iEventId       = iEventID ;
 		_iCityId        = iCityID ;

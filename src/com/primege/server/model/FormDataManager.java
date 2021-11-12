@@ -40,7 +40,7 @@ public class FormDataManager
 		if ((null == _dbConnector) || (null == dataToInsert))
 			return false ;
 		
-		String sQuery = "INSERT INTO form (archetypeID, eventID, cityID, siteID, formDate, userID, formEntryDate, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)" ;
+		String sQuery = "INSERT INTO form (archetypeID, action, eventID, cityID, siteID, formDate, userID, formEntryDate, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)" ;
 		_dbConnector.prepareStatememt(sQuery, Statement.RETURN_GENERATED_KEYS) ;
 		if (null == _dbConnector.getPreparedStatement())
 		{
@@ -50,13 +50,14 @@ public class FormDataManager
 		}
 		
 		_dbConnector.setStatememtInt(1, dataToInsert.getArchetypeId()) ;
-		_dbConnector.setStatememtInt(2, dataToInsert.getEventId()) ;
-		_dbConnector.setStatememtInt(3, dataToInsert.getCityId()) ;
-		_dbConnector.setStatememtInt(4, dataToInsert.getSiteId()) ;
-		_dbConnector.setStatememtString(5, dataToInsert.getEventDate()) ;
-		_dbConnector.setStatememtInt(6, dataToInsert.getAuthorId()) ;
-		_dbConnector.setStatememtString(7, dataToInsert.getEntryDateHour()) ;
-		_dbConnector.setStatememtString(8, dataToInsert.getStatusAsString()) ;
+		_dbConnector.setStatememtString(2, dataToInsert.getActionId()) ;
+		_dbConnector.setStatememtInt(3, dataToInsert.getEventId()) ;
+		_dbConnector.setStatememtInt(4, dataToInsert.getCityId()) ;
+		_dbConnector.setStatememtInt(5, dataToInsert.getSiteId()) ;
+		_dbConnector.setStatememtString(6, dataToInsert.getEventDate()) ;
+		_dbConnector.setStatememtInt(7, dataToInsert.getAuthorId()) ;
+		_dbConnector.setStatememtString(8, dataToInsert.getEntryDateHour()) ;
+		_dbConnector.setStatememtString(9, dataToInsert.getStatusAsString()) ;
 		
 		// Execute query 
 		//
@@ -201,7 +202,7 @@ public class FormDataManager
 			
 		// Prepare SQL query
 		//
-		String sQuery = "UPDATE form SET archetypeID = ?, eventID = ?, cityID = ?, siteID = ?, formDate = ?, userID = ?, formEntryDate = ?, deleted = ?" +
+		String sQuery = "UPDATE form SET archetypeID = ?, action = ?, eventID = ?, cityID = ?, siteID = ?, formDate = ?, userID = ?, formEntryDate = ?, deleted = ?" +
 				                          " WHERE " +
 				                               "id = '" + dataToUpdate.getFormId() + "'" ; 
 		
@@ -214,13 +215,14 @@ public class FormDataManager
 		}
 		
 		_dbConnector.setStatememtInt(1, dataToUpdate.getArchetypeId()) ;
-		_dbConnector.setStatememtInt(2, dataToUpdate.getEventId()) ;
-		_dbConnector.setStatememtInt(3, dataToUpdate.getCityId()) ;
-		_dbConnector.setStatememtInt(4, dataToUpdate.getSiteId()) ;
-		_dbConnector.setStatememtString(5, dataToUpdate.getEventDate()) ;
-		_dbConnector.setStatememtInt(6, dataToUpdate.getAuthorId()) ;
-		_dbConnector.setStatememtString(7, dataToUpdate.getEntryDateHour()) ;
-		_dbConnector.setStatememtString(8, dataToUpdate.getStatusAsString()) ;
+		_dbConnector.setStatememtString(2, dataToUpdate.getActionId()) ;
+		_dbConnector.setStatememtInt(3, dataToUpdate.getEventId()) ;
+		_dbConnector.setStatememtInt(4, dataToUpdate.getCityId()) ;
+		_dbConnector.setStatememtInt(5, dataToUpdate.getSiteId()) ;
+		_dbConnector.setStatememtString(6, dataToUpdate.getEventDate()) ;
+		_dbConnector.setStatememtInt(7, dataToUpdate.getAuthorId()) ;
+		_dbConnector.setStatememtString(8, dataToUpdate.getEntryDateHour()) ;
+		_dbConnector.setStatememtString(9, dataToUpdate.getStatusAsString()) ;
 				
 		// Execute query 
 		//
@@ -255,6 +257,7 @@ public class FormDataManager
 		{
 			foundData.setFormId(rs.getInt("id")) ;
 			foundData.setArchetypeId(rs.getInt("archetypeID")) ;
+			foundData.setActionId(rs.getString("action")) ;
 			foundData.setEventId(rs.getInt("eventID")) ;
 			foundData.setCityId(rs.getInt("cityID")) ;
 			foundData.setSiteId(rs.getInt("siteID")) ;

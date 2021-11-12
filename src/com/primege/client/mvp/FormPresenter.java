@@ -104,7 +104,7 @@ public class FormPresenter extends FormPresenterModel<FormPresenter.Display>
 			//	return ;
 			
 			ArrayList<FormDataData> aFormInformation = new ArrayList<FormDataData>() ;
-			boolean bAllControlFilled = display.getContent(aFormInformation) ;
+			boolean bAllControlFilled = display.getContent(aFormInformation, null) ;
 			
 			// If a control is not filled or invalid, we refuse to save
 			//
@@ -114,14 +114,14 @@ public class FormPresenter extends FormPresenterModel<FormPresenter.Display>
 				return ;
 			}
 			
-			int    iCityId    = getIntValueForPath("$city$") ;
-			int    iSiteId    = getIntValueForPath("$site$") ;
-			String sEventDate = getValueForPath("$date$") ;
+			int    iCityId    = getIntValueForPath("$city$", null) ;
+			int    iSiteId    = getIntValueForPath("$site$", null) ;
+			String sEventDate = getValueForPath("$date$", null) ;
 			
 		// TODO Check if we can get the edited root (in case it is not a new form)
 			String sRoot = "" ;
 
-			FormData formData = new FormData(_iFormId, sRoot, ((PrimegeSupervisor) _supervisor).getEventId(), iCityId, iSiteId, sEventDate, _supervisor.getUserId(), _sRecordDate, _iArchetypeId, FormDataModel.FormStatus.valid) ;
+			FormData formData = new FormData(_iFormId, "", sRoot, ((PrimegeSupervisor) _supervisor).getEventId(), iCityId, iSiteId, sEventDate, _supervisor.getUserId(), _sRecordDate, _iArchetypeId, FormDataModel.FormStatus.valid) ;
 						
 			removeFromInformation(aFormInformation, "$city$") ;
 			removeFromInformation(aFormInformation, "$site$") ;
@@ -146,9 +146,9 @@ public class FormPresenter extends FormPresenterModel<FormPresenter.Display>
 		{
 			public void onChange(final ChangeEvent event) 
 			{
-				int    iCityId    = getIntValueForPath("$city$") ;
-				int    iSiteId    = getIntValueForPath("$site$") ;
-				String sEventDate = getValueForPath("$date$") ;
+				int    iCityId    = getIntValueForPath("$city$", null) ;
+				int    iSiteId    = getIntValueForPath("$site$", null) ;
+				String sEventDate = getValueForPath("$date$", null) ;
 				
 				//
 				//
@@ -158,9 +158,9 @@ public class FormPresenter extends FormPresenterModel<FormPresenter.Display>
 				// In case we are editing a form that is already saved, we must first check
 				// if one of the document label information has changed
 				//
-				if (null != _editedBlock)
+				if (null != getEditedBlock())
 				{
-					FormData documentLabel = (FormData) ((FormBlock<FormDataData>) _editedBlock).getDocumentLabel() ;
+					FormData documentLabel = (FormData) ((FormBlock<FormDataData>) getEditedBlock()).getDocumentLabel() ;
 					if (null != documentLabel)
 					{
 						if ((documentLabel.getCityId() == iCityId) &&
@@ -203,14 +203,14 @@ public class FormPresenter extends FormPresenterModel<FormPresenter.Display>
 	
 	protected ArrayList<FormDataData> getEditedInformationForPath(final String sPath, final ArrayList<FormControlOptionData> aOptions)
 	{
-		if ((null == _editedBlock) || (null == sPath) || "".equals(sPath))
+		if ((null == getEditedBlock()) || (null == sPath) || "".equals(sPath))
 			return null ;
 		
 		// Artificial paths
 		//
 		if ("$city$".equals(sPath) || "$site$".equals(sPath) || "$date$".equals(sPath))
 		{
-			FormData formData = (FormData) ((FormBlock<FormDataData>) _editedBlock).getDocumentLabel() ;
+			FormData formData = (FormData) ((FormBlock<FormDataData>) getEditedBlock()).getDocumentLabel() ;
 			if (null == formData)
 				return null ;
 			
@@ -254,8 +254,8 @@ public class FormPresenter extends FormPresenterModel<FormPresenter.Display>
 		@Override
 		public void onSuccess(GetFormBlockResult value) 
 		{
-			_editedBlock = new FormBlock<FormDataData>(value.getFormBlock()) ;
-			initFromBlock((FormBlock<FormDataData>) _editedBlock) ;
+			setEditedBlock(new FormBlock<FormDataData>(value.getFormBlock())) ;
+			initFromBlock((FormBlock<FormDataData>) getEditedBlock()) ;
 		}
 	}
 	

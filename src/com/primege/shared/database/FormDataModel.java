@@ -16,6 +16,9 @@ public class FormDataModel implements IsSerializable
 	
 	private int        _iFormId ;
 	
+	/** Action identifier if the form is another form's annotation, <code>""</code> if not */
+	private String     _sActionId ;
+	
 	private int        _iAuthorId ;
 	private String     _sEntryDateHour ;
 	
@@ -34,9 +37,11 @@ public class FormDataModel implements IsSerializable
 	/**
 	 * Plain vanilla constructor 
 	 */
-	public FormDataModel(int iID, final String sRoot, int iAuthorID, final String sEntryDateHour, int iArchetypeID, FormStatus iStatus) 
+	public FormDataModel(int iID, final String sActionId, final String sRoot, int iAuthorID, final String sEntryDateHour, int iArchetypeID, FormStatus iStatus) 
 	{
 		_iFormId        = iID ;
+		
+		_sActionId      = sActionId ;
 		
 		_iAuthorId      = iAuthorID ;
 		_sEntryDateHour = sEntryDateHour ;
@@ -71,7 +76,8 @@ public class FormDataModel implements IsSerializable
 		if (null == model)
 			return ;
 		
-		_iFormId        = model._iFormId ;		
+		_iFormId        = model._iFormId ;
+		_sActionId      = model._sActionId ;
 		_iAuthorId      = model._iAuthorId ;
 		_sEntryDateHour = model._sEntryDateHour ;
 		_iArchetypeId   = model._iArchetypeId ;
@@ -84,7 +90,8 @@ public class FormDataModel implements IsSerializable
 	 */
 	public void reset() 
 	{
-		_iFormId        = -1 ;		
+		_iFormId        = -1 ;
+		_sActionId      = "" ;
 		_iAuthorId      = -1 ;
 		_sEntryDateHour = "" ;
 		_iArchetypeId   = -1 ;
@@ -125,6 +132,13 @@ public class FormDataModel implements IsSerializable
 	public void setFormId(int iFormId) {
 		_iFormId = iFormId ;
 	}
+	
+	public String getActionId() {
+  	return _sActionId ;
+  }
+	public void setActionId(final String sActionId) {
+		_sActionId = sActionId ;
+  }
 	
 	public int getAuthorId() {
 		return _iAuthorId ;
@@ -215,6 +229,7 @@ public class FormDataModel implements IsSerializable
 		
 		return (_iFormId      == formData._iFormId)      &&
 		       (_iAuthorId    == formData._iAuthorId)    &&
+		       GlobalParameters.areStringsEqual(_sActionId, formData._sActionId) &&
 		       GlobalParameters.areStringsEqual(_sEntryDateHour, formData._sEntryDateHour) &&
 		       GlobalParameters.areStringsEqual(_sRoot, formData._sRoot) &&
 		       (_iArchetypeId == formData._iArchetypeId) &&
