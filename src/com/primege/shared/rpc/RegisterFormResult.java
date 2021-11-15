@@ -33,7 +33,7 @@ public class RegisterFormResult implements Result
 	public String getMessage() {
   	return _sMessage ;
   }
-	public void setMessage(String sMessage) {
+	public void setMessage(final String sMessage) {
   	_sMessage = sMessage ;
   }
 }

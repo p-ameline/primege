@@ -18,7 +18,7 @@ import com.primege.shared.database.FormLink;
  */
 public class FormBlock<T extends FormDataData> extends FormBlockModel<T> implements IsSerializable 
 {
-	protected FormDataModel _document ;
+	protected FormDataModel       _document ;
 	
 	protected ArrayList<FormLink> _aLinks = new ArrayList<FormLink>() ;
 	// protected ArrayList<FormAnnotationBlock<T>> _aAnnotations = new ArrayList<FormAnnotationBlock<T>>() ;
@@ -123,6 +123,19 @@ public class FormBlock<T extends FormDataData> extends FormBlockModel<T> impleme
       return ;
 		
 		_aLinks.add(link) ;
+	}
+	
+	/**
+	 * Get document's form identifier
+	 * 
+	 * @return <code>-1</code> if there is no document yet, its form identifier if it exists
+	 */
+	public int getFormId()
+	{
+		if (null != _document)
+			return -1 ;
+		
+		return _document.getFormId() ;
 	}
 	
 /*

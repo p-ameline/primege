@@ -3,6 +3,7 @@ package com.primege.server.model;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import com.primege.server.DBConnector;
 import com.primege.server.Logger;
@@ -17,9 +18,6 @@ public class FormInformationManager
 {	
 	protected final DBConnector     _dbConnector ;
 	protected final int             _iUserId ;
-	protected final InformationType _informationType ;
-	
-	public enum InformationType { form, annotation } ;
 	
 	protected final String          _sTableName ;
 	protected final String          _sReferenceName ;
@@ -27,23 +25,13 @@ public class FormInformationManager
 	/**
 	 * Constructor 
 	 */
-	public FormInformationManager(int iUserId, final DBConnector dbConnector, InformationType informationType)
+	public FormInformationManager(int iUserId, final DBConnector dbConnector)
 	{
 		_dbConnector     = dbConnector ;
 		_iUserId         = iUserId ;
 		
-		_informationType = informationType ;
-		
-		switch(_informationType)
-		{
-			case annotation :
-				_sTableName     = "formAnnotationData" ;
-				_sReferenceName = "annotationID" ;
-				break ;
-			default :
-				_sTableName     = "formData" ;
-				_sReferenceName = "formID" ;
-		}
+		_sTableName     = "formData" ;
+		_sReferenceName = "formID" ;
 	}
 	
 	/**
@@ -56,8 +44,6 @@ public class FormInformationManager
 	public boolean insertData(FormDataData dataToInsert)
 	{
 		String sFctName = "FormInformationManager.insertData" ;
-		if (InformationType.annotation == _informationType)
-			sFctName += " (annotation)" ;
 		
 		if ((null == _dbConnector) || (null == dataToInsert))
 		{
@@ -125,8 +111,6 @@ public class FormInformationManager
 	public boolean updateData(FormDataData dataToUpdate)
 	{
 		String sFctName = "FormInformationManager.updateData" ;
-		if (InformationType.annotation == _informationType)
-			sFctName += " (annotation)" ;
 		
 		if ((null == _dbConnector) || (null == dataToUpdate))
 		{
@@ -158,8 +142,6 @@ public class FormInformationManager
 	private boolean existData(int iDataId, FormDataData foundData)
 	{
 		String sFctName = "FormInformationManager.existData" ;
-		if (InformationType.annotation == _informationType)
-			sFctName += " (annotation)" ;
 		
 		if ((null == _dbConnector) || (-1 == iDataId) || (null == foundData))
 		{
@@ -219,8 +201,6 @@ public class FormInformationManager
 	private boolean forceUpdateData(FormDataData dataToUpdate)
 	{
 		String sFctName = "FormInformationManager.forceUpdateData" ;
-		if (InformationType.annotation == _informationType)
-			sFctName += " (annotation)" ;
 		
 		if ((null == _dbConnector) || (null == dataToUpdate))
 		{
@@ -274,8 +254,6 @@ public class FormInformationManager
 	public boolean loadFormData(int iFormId, FormBlockModel<FormDataData> form) 
 	{
 		String sFctName = "FormInformationManager.loadFormData" ;
-		if (InformationType.annotation == _informationType)
-			sFctName += " (annotation)" ;
 		
 		if (null == form)
 		{
@@ -336,13 +314,11 @@ public class FormInformationManager
 	 * 
 	 * @param iInformationId Identifier of record to be deleted
 	 *  
-	 * @return true if everything ok, false if any problem
+	 * @return <code>true</code> if everything went well, <code>false</code> if not
 	 */
 	public boolean deleteFormData(int iInformationId)
 	{
 		String sFctName = "FormInformationManager.deleteFormData" ;
-		if (InformationType.annotation == _informationType)
-			sFctName += " (annotation)" ;
 		
 		if (iInformationId <= 0)
 		{
@@ -379,8 +355,6 @@ public class FormInformationManager
 	protected void fillDataFromResultSet(ResultSet rs, FormDataData foundData)
 	{
 		String sFctName = "FormInformationManager.fillDataFromResultSet" ;
-		if (InformationType.annotation == _informationType)
-			sFctName += " (annotation)" ;
 		
 		if ((null == rs) || (null == foundData))
 		{
@@ -400,4 +374,141 @@ public class FormInformationManager
 			Logger.trace(sFctName + ": exception when processing results set: " + e.getMessage(), _iUserId, Logger.TraceLevel.ERROR) ;
 		}
 	}
+	
+	/**
+	 * Store or update the set of information for a given form (known from its identifier)
+	 * 
+	 * @param iFormId      Form identifier
+	 * @param aInformation Set of information to store or update
+	 * 
+	 * @return <code>true</code> if everything went well, <code>false</code> if not
+	 */
+	public boolean storeInformation(int iFormId, ArrayList<FormDataData> aInformation)
+  {
+    String sFctName = "FormInformationManager.storeInformation" ;
+    
+    if ((null == _dbConnector) || (null == aInformation))
+    {
+      Logger.trace(sFctName + ": Null parameter.", _iUserId, Logger.TraceLevel.ERROR) ;
+      return false ;
+    }
+    
+    if (aInformation.isEmpty())
+    {
+      Logger.trace(sFctName + ": Empty form information array", _iUserId, Logger.TraceLevel.WARNING) ;
+      return true ;
+    }
+    
+    for (FormDataData formInformation : aInformation)
+    {
+      formInformation.setFormId(iFormId) ;
+      storeOrUpdateInformation(formInformation) ;
+    }
+    
+    suppressDeletedInformation(iFormId, aInformation) ; 
+    
+    return true ;
+  }
+
+	/**
+	 * Store or update an information
+	 * 
+	 * @param formInformation New or (potentially) updated information
+	 * 
+	 * @return <code>true</code> if everything went well, <code>false</code> if not
+	 */
+  protected boolean storeOrUpdateInformation(FormDataData formInformation)
+  {
+    String sFctName = "FormInformationManager.storeOrUpdateInformation" ;
+    
+    if (null == formInformation)
+    {
+      Logger.trace(sFctName + ": Null parameter.", _iUserId, Logger.TraceLevel.ERROR) ;
+      return false ;
+    }
+
+    boolean bDataSaved ;
+
+    if (formInformation.getId() == -1)
+      bDataSaved = insertData(formInformation) ;
+    else
+      bDataSaved = updateData(formInformation) ;
+
+    return bDataSaved ;
+  }
+
+  /** 
+   * Remove all information that appear in database and are no longer in FormDataData array 
+   * 
+   * @param  iContactId  Contact identifier 
+   * @param  soapBasket  Basket array
+   * 
+   * @return <code>true</code> if everything went well, <code>false</code> if not
+   */
+  private boolean suppressDeletedInformation(int iFormId, ArrayList<FormDataData> aInformation)
+  {
+    String sFctName = "FormInformationManager.suppressDeletedInformation" ;
+    
+    if (null == aInformation)
+    {
+      Logger.trace(sFctName + ": Null parameter.", _iUserId, Logger.TraceLevel.ERROR) ;
+      return false ;
+    }
+    
+    String sQuery = "SELECT id FROM formData WHERE formID = ?" ;
+    
+    _dbConnector.prepareStatememt(sQuery, Statement.NO_GENERATED_KEYS) ;
+    _dbConnector.setStatememtInt(1, iFormId) ;
+    
+    if (false == _dbConnector.executePreparedStatement())
+    {
+      Logger.trace(sFctName + ": failed query " + sQuery, _iUserId, Logger.TraceLevel.ERROR) ;
+      return false ;
+    }
+    
+    ResultSet rs = _dbConnector.getResultSet() ;
+    if (null == rs)
+    {
+      Logger.trace(sFctName + ": no FormDataData found for form = " + iFormId, _iUserId, Logger.TraceLevel.WARNING) ;
+      return false ;
+    }
+
+    try
+    {
+      while (rs.next())
+      {
+        int iInformationId = rs.getInt("id") ;
+        if (false == isInformationInArray(iInformationId, aInformation))
+        	deleteFormData(iInformationId) ;
+      }
+    } catch (SQLException e)
+    {
+      Logger.trace(sFctName + ": exception when iterating results " + e.getMessage(), _iUserId, Logger.TraceLevel.ERROR) ;
+    }
+    
+    _dbConnector.closeResultSet() ;
+    _dbConnector.closePreparedStatement() ;
+    
+    return true ;
+  }
+  
+  /**
+   * Check if a {@link FormDataData} (known from its identifier) exists in a list
+   *  
+   * @param iInformationId Identifier of {@link FormDataData} to look for
+   * @param aInformation   List of {@link FormDataData} to look into
+   * 
+   * @return <code>true</code> if found, <code>false</code> if not
+   */
+  private boolean isInformationInArray(int iInformationId, ArrayList<FormDataData> aInformation)
+  {
+    if (aInformation.isEmpty())
+      return false ;
+
+    for (FormDataData formInformation : aInformation)
+      if (formInformation.getId() == iInformationId)
+        return true ;
+
+    return false ;
+  }
 }

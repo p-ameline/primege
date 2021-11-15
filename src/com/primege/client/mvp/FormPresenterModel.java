@@ -41,6 +41,7 @@ import com.primege.client.widgets.FormBlockPanel;
 import com.primege.shared.GlobalParameters;
 import com.primege.shared.database.Dictionary;
 import com.primege.shared.database.FormDataData;
+import com.primege.shared.database.FormDataModel;
 import com.primege.shared.database.FormLink;
 import com.primege.shared.model.Action;
 import com.primege.shared.model.FormBlock;
@@ -49,6 +50,7 @@ import com.primege.shared.model.TraitPath;
 import com.primege.shared.rpc.GetArchetypeAction;
 import com.primege.shared.rpc.GetArchetypeResult;
 import com.primege.shared.rpc.GetFormsResult;
+import com.primege.shared.rpc.RegisterFormAnnotationResult;
 import com.primege.shared.rpc.RegisterFormResult;
 import com.primege.shared.util.MailTo;
 
@@ -472,6 +474,93 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				
 				leaveWhenSaved() ;
 			}
+			
+			_bSaveInProgress = false ;
+		}
+	}
+	
+	protected class RegisterFormAnnotationCallback implements AsyncCallback<RegisterFormAnnotationResult> 
+	{
+		public RegisterFormAnnotationCallback() {
+			super() ;
+		}
+
+		@Override
+		public void onFailure(Throwable cause) {
+			Log.error("Unhandled error", cause);
+			_bSaveInProgress = false ;
+			display.showDefaultCursor() ;
+		}//end handleFailure
+
+		@Override
+		public void onSuccess(RegisterFormAnnotationResult value) 
+		{
+			display.showDefaultCursor() ;
+			
+			// No form created
+			if (0 == value.getRecordedId())
+			{
+				Log.error("No form created") ;
+				_bSaveInProgress = false ;
+				return ;
+			}
+			
+			int    iFormId   = value.getRecordedId() ;
+			String sActionId = value.getActionId() ;
+			
+			String sMsg = "" ;
+			if (value.isNewAnnotation())
+				sMsg = "new annotation for action \"" + sActionId + "\"" ;
+			else
+				sMsg = "annotation " + iFormId ;
+			
+			Log.info("Form saved for " + sMsg) ;
+			
+			// Update the FormBlockPanel
+			//
+			FormBlockPanel annotationBlock = null ;
+			if (value.isNewAnnotation())
+				annotationBlock = display.getActionFromAnnotationID(-1, sActionId) ;
+			else
+				annotationBlock = display.getActionFromAnnotationID(iFormId, "") ;
+			
+			if (null == annotationBlock)
+			{
+				Log.error("Cannot find panel for " + sMsg) ;
+				_bSaveInProgress = false ;
+				return ;
+			}
+			
+			FormBlock<FormDataData> editedBlock = annotationBlock.getEditedBlock() ;
+			
+			if (null == editedBlock)
+			{
+				Log.error("Edited block is null for " + sMsg) ;
+				_bSaveInProgress = false ;
+				return ;
+			}
+			
+			// If a new annotation, set its form's identifier
+			//
+			if (value.isNewAnnotation())
+			{
+				FormDataModel document = editedBlock.getDocumentLabel() ;
+				
+				if (null == document)
+				{
+					Log.error("Document label is null for " + sMsg) ;
+					_bSaveInProgress = false ;
+					return ;
+				}
+				
+				document.setFormId(iFormId) ;
+			}
+			
+			ArrayList<FormLink> aNewLinks = value.getNewLinks() ;
+			
+			if (false == aNewLinks.isEmpty())
+				for (FormLink link : aNewLinks)
+					editedBlock.addLink(link);
 			
 			_bSaveInProgress = false ;
 		}
@@ -1160,6 +1249,8 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		
 		// Get the proper action in archetype in order to display proper controls
 		//
+		// It is possible not to find the action if the archetype has been modified
+		//
 		Action action = getActionFromType(link.getPredicate()) ;
 /*
 		if (null == action)
@@ -1179,7 +1270,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		
 		// Get a block from display and populate it with annotation's controls
 		//
-		FormBlockPanel annotationPanel = display.getNewActionBlock(sCaption, link.getObjectFormId(), _ActionClickHandler) ;
+		FormBlockPanel annotationPanel = display.getNewActionBlock(sCaption, link.getObjectFormId(), "", _ActionClickHandler) ;
 		if (null == annotationPanel)
 		{
 			Log.info("Cannot get a block from display. Annotation for form " + link.getObjectFormId() + " cannot be displayed.") ;
@@ -1223,8 +1314,15 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				String sActionType = display.getActionButtonType(button) ;
 				if (false == sActionType.isEmpty())
 				{
+					// Buttons' identifier contains either the form identifier or, for new annotation, the action identifier 
+					String sActionId = "" ;
 					int iFormId = display.getActionButtonFormID(button) ;
-					executeAction(sActionType, iFormId) ;
+					if (iFormId < 0)
+					{
+						iFormId = -1 ;
+						sActionId = display.getActionButtonActionID(button) ;
+					}
+					executeAction(sActionType, iFormId, sActionId) ;
 				}
 			}
 		} ;
@@ -1235,20 +1333,21 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * 
 	 * @param sActionType Action type
 	 * @param iFormId     Identifier of the form this action applies to
+	 * @param sActionId   Identifier of the {@link Action} involved (used only for new annotations)
 	 */
-	protected void executeAction(final String sActionType, final int iFormId)
+	protected void executeAction(final String sActionType, final int iFormId, final String sActionId)
 	{
 		if ((null == sActionType) || sActionType.isEmpty())
 			return ;
 		
 		if ("action_save".equals(sActionType))
 		{
-			saveAnnotation(iFormId, false) ;
+			saveAnnotation(iFormId, sActionId, false) ;
 			return ;
 		}
 		if ("action_draft".equals(sActionType))
 		{
-			saveAnnotation(iFormId, true) ;
+			saveAnnotation(iFormId, sActionId, true) ;
 			return ;
 		}
 	}
@@ -1256,10 +1355,11 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	/**
 	 * Save an annotation - to be redefined by sub-classes
 	 * 
-	 * @param iFormId  Identifier of the form to save (<code>-1</code> if a new form)
-	 * @param bIsDraft If <code>true</code>, then save as a draft, if <code>false</code> save as a valid form
+	 * @param iFormId   Identifier of the form to save (<code>-1</code> if a new form)
+	 * @param sActionId Identifier of the {@link Action} involved (used only for new annotations)
+	 * @param bIsDraft  If <code>true</code>, then save as a draft, if <code>false</code> save as a valid form
 	 */
-	protected void saveAnnotation(final int iFormId, boolean bIsDraft) {
+	protected void saveAnnotation(final int iFormId, final String sActionId, boolean bIsDraft) {
 	}
 	
 	/**
@@ -1290,13 +1390,20 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		
 		// Create a new panel
 		//
-		FormBlockPanel actionRootBlock = display.getNewActionBlock(selectedAction.getCaption(), -1, _ActionClickHandler) ;
+		FormBlockPanel actionRootBlock = display.getNewActionBlock(selectedAction.getCaption(), -1, selectedAction.getIdentifier(), _ActionClickHandler) ;
 		
 		// Populate the panel with action's interface elements
 		//
 		initFormFromArchetypeElement(selectedAction.getModel(), actionRootBlock) ;
 	}
 	
+	/**
+	 * Get an {@link Action} from its identifier
+	 * 
+	 * @param sID Identifier to find
+	 * 
+	 * @return The {@link Action} if found, <code>null</code> if not
+	 */
 	protected Action getActionFromId(final String sID)
 	{
 		if ((null == sID) || sID.isEmpty() || _aActions.isEmpty())
@@ -1309,6 +1416,13 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		return null ;
 	}
 	
+	/**
+	 * Get the first {@link Action} that fits a given type
+	 * 
+	 * @param sType Action type to find
+	 * 
+	 * @return The {@link Action} if found, <code>null</code> if not
+	 */
 	protected Action getActionFromType(final String sType)
 	{
 		if ((null == sType) || sType.isEmpty() || _aActions.isEmpty())

@@ -60,12 +60,19 @@ public interface FormInterfaceModel extends PrimegeBaseInterface
 	
 	// Actions/Annotations management
 	//
-	public FormBlockPanel  getNewActionBlock(final String sCaption, final int iAnnotationID, ClickHandler actionClickHandler) ;
-	public FormBlockPanel  getActionFromAnnotationID(final int iAnnotationID) ;
+	public FormBlockPanel  getNewActionBlock(final String sCaption, final int iAnnotationID, final String sActionId, ClickHandler actionClickHandler) ;
+	/**
+   * Get the {@link FormBlockPanel} for a given annotation identifier
+   * @param iAnnotationID Annotation identifier to look for
+   * @param sActionId     Action identifier, only used when annotation identifier is <code>-1</code>
+   * @return The {@link FormBlockPanel} if found, <code>null</code> if not
+   */
+	public FormBlockPanel  getActionFromAnnotationID(final int iAnnotationID, final String sActionId) ;
 	public void            initializeActionControls() ;
 	public void            initializeActionHistory() ;
 	public void            addNewActionButton(final String sCaption, ClickHandler handler, final String sActionId) ;
 	public String          getNewAnnotationID(Widget sender) ;
 	public String          getActionButtonType(Widget actionButton) ;
 	public int             getActionButtonFormID(Widget actionButton) ;
+	public String          getActionButtonActionID(Widget actionButton) ;
 }

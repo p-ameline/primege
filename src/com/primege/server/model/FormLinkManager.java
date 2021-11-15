@@ -242,7 +242,69 @@ public class FormLinkManager
 		
 		return true ;
 	}
+	
+	/**
+	  * Check if there is any {@link FormLink} with a form as subject and another form as object and, if true get its content
+	  * 
+	  * @param iSubjectFormId ID of subject form of the link to find
+	  * @param iObjectFormId  ID of object form of the link to find
+	  * @param foundData      {@link FormLink} to get existing information
+	  * 
+	  * @return <code>true</code> if found, <code>false</code> if not
+	  */
+	public boolean getLinkBetweenForms(int iSubjectFormId, int iObjectFormId, FormLink foundData)
+	{
+		String sFctName = "FormLinkManager.existData" ;
 		
+		if ((null == _dbConnector) || (-1 == iSubjectFormId) || (-1 == iObjectFormId) || (null == foundData))
+		{
+			Logger.trace(sFctName + ": bad parameter", _iUserId, Logger.TraceLevel.ERROR) ;
+			return false ;
+		}
+		
+		String sQuery = "SELECT * FROM formLink WHERE subjectFormID = ? AND objectFormID = ?" ;
+		
+		_dbConnector.prepareStatememt(sQuery, Statement.NO_GENERATED_KEYS) ;
+		_dbConnector.setStatememtInt(1, iSubjectFormId) ;
+		_dbConnector.setStatememtInt(2, iObjectFormId) ;
+	   		
+		if (false == _dbConnector.executePreparedStatement())
+		{
+			Logger.trace(sFctName + ": failed query " + sQuery, _iUserId, Logger.TraceLevel.ERROR) ;
+			_dbConnector.closePreparedStatement() ;
+			return false ;
+		}
+	   		
+		ResultSet rs = _dbConnector.getResultSet() ;
+		if (null == rs)
+		{
+			Logger.trace(sFctName + ": no FormLink found for subject = " + iSubjectFormId + " and object = " + iObjectFormId , _iUserId, Logger.TraceLevel.WARNING) ;
+			_dbConnector.closePreparedStatement() ;
+			return false ;
+		}
+		
+		try
+		{
+	    if (rs.next())
+	    {
+	    	fillDataFromResultSet(rs, foundData) ;
+	    	
+	    	_dbConnector.closeResultSet() ;
+	    	_dbConnector.closePreparedStatement() ;
+	    	
+	    	return true ;	    	
+	    }
+		} catch (SQLException e)
+		{
+			Logger.trace(sFctName + ": exception when iterating results " + e.getMessage(), _iUserId, Logger.TraceLevel.ERROR) ;
+		}
+		
+		_dbConnector.closeResultSet() ;
+		_dbConnector.closePreparedStatement() ;
+				
+		return false ;
+	}
+	
 	/**
 	  * Update a {@link FormLink} in database
 	  * 

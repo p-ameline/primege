@@ -12,7 +12,6 @@ public class RegisterFormAction implements Action<RegisterFormResult>
 {	
 	private int                          _iUserId ;
 	
-	private int                          _iFormId ;
 	private ArrayList<TraitPath>         _aTraits ;
 	
 	private FormBlockModel<FormDataData> _formBlock ;
@@ -28,20 +27,18 @@ public class RegisterFormAction implements Action<RegisterFormResult>
 		
 		_formBlock = null ;
 		
-		_iFormId   = -1 ;
 		_aTraits   = null ;
 	}
 	
 	/**
 	 * Plain vanilla constructor
 	 */
-	public RegisterFormAction(int iUserId, int iFormId, final FormBlockModel<FormDataData> formBlock, final ArrayList<TraitPath> aTraits) 
+	public RegisterFormAction(int iUserId, final FormBlockModel<FormDataData> formBlock, final ArrayList<TraitPath> aTraits) 
 	{
 		_iUserId   = iUserId ;
 		
 		_formBlock = formBlock ;
 		
-		_iFormId   = iFormId ;
 		_aTraits   = aTraits ;
 	}
 
@@ -50,13 +47,6 @@ public class RegisterFormAction implements Action<RegisterFormResult>
 	}
 	public void setUserId(int iUserId) {
 		_iUserId = iUserId ;
-	}
-
-	public int getFormId() {
-		return _iFormId ;
-	}
-	public void setFormId(int iFormId) {
-		_iFormId = iFormId ;
 	}
 	
 	public FormBlockModel<FormDataData> getFormBlock() {

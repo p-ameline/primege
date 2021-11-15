@@ -1,8 +1,5 @@
 package com.primege.server.handler;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -117,8 +114,10 @@ public class RecordFormHandler implements ActionHandler<RegisterFormAction, Regi
 			return true ;
 		}
 		
-		FormInformationManager formInformationManager = new FormInformationManager(iUserId, dbConnector, FormInformationManager.InformationType.form) ;
+		FormInformationManager formInformationManager = new FormInformationManager(iUserId, dbConnector) ;
 		
+		return formInformationManager.storeInformation(formData.getFormId(), aInformation) ;
+/*		
 		for (FormDataData formInformation : aInformation)
 		{
 			formInformation.setFormId(formData.getFormId()) ;
@@ -128,8 +127,9 @@ public class RecordFormHandler implements ActionHandler<RegisterFormAction, Regi
 		suppressDeletedInformation(dbConnector, formData.getFormId(), aInformation, iUserId) ; 
 		
 		return true ;
+*/
 	}
-	
+/*	
 	private boolean storeOrUpdateInformation(FormInformationManager formInformationManager, FormDataData formInformation, int iUserId)
 	{
 		if ((null == formInformationManager) || (null == formInformation))
@@ -144,7 +144,7 @@ public class RecordFormHandler implements ActionHandler<RegisterFormAction, Regi
 		
 		return bDataSaved ;
 	}
-
+*/
 	/** 
 	 * Remove all information that appear in database and are no longer in FormDataData array 
 	 * 
@@ -154,6 +154,7 @@ public class RecordFormHandler implements ActionHandler<RegisterFormAction, Regi
 	 * @param  iUserId     User identifier
 	 * @return true if everything ok, false if any problem
 	 */
+/*
 	private boolean suppressDeletedInformation(DBConnector dbConnector, int iFormId, ArrayList<FormDataData> aInformation, int iUserId)
 	{
 		if ((null == dbConnector) || (null == aInformation))
@@ -207,7 +208,7 @@ public class RecordFormHandler implements ActionHandler<RegisterFormAction, Regi
 		
 		return false ;
 	}
-	
+*/	
 	/** 
 	 * Remove from database all ContactCodes and ContactCodeEcogens linked to a given ContactElement, then remove the ContactElement itself  
 	 * 
@@ -216,6 +217,7 @@ public class RecordFormHandler implements ActionHandler<RegisterFormAction, Regi
 	 * @param  iUserId     User identifier
 	 * @return true if everything ok, false if any problem
 	 */
+/*
 	private boolean deleteInformation(DBConnector dbConnector, int iInformationId, int iUserId)
 	{
 		if ((null == dbConnector) || (-1 == iInformationId))
@@ -239,7 +241,7 @@ public class RecordFormHandler implements ActionHandler<RegisterFormAction, Regi
 				
 		return true ;
 	}
-		
+*/		
 	@Override
 	public Class<RegisterFormAction> getActionType() {
 		return RegisterFormAction.class;

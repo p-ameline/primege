@@ -1190,11 +1190,11 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
    * @return The newly created block
    */
   @Override
-  public FormBlockPanel getNewActionBlock(final String sCaption, final int iAnnotationFormID, ClickHandler actionClickHandler)
+  public FormBlockPanel getNewActionBlock(final String sCaption, final int iAnnotationFormID, final String sActionId, ClickHandler actionClickHandler)
 	{
   	// First, check if this annotation is already displayed
   	//
-  	FormBlockPanel existingFBP = getActionFromAnnotationID(iAnnotationFormID) ;
+  	FormBlockPanel existingFBP = getActionFromAnnotationID(iAnnotationFormID, "") ;
   	if (null != existingFBP)
   		return existingFBP ;
   	
@@ -1216,6 +1216,8 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   	//
   	FormBlockPanel newBlock = new FormBlockPanel(new FormBlockInformation(null)) ;
   	newBlock.addStyleName("formBlockPanel") ;
+  	
+  	newBlock.setActionIdentifier(sActionId) ;
   	
   	// Create buttons panel
   	//
@@ -1241,13 +1243,13 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   	if (-1 == iAnnotationFormID)
   	{
   		Button submitButton = new Button(constants.validateNewForm(), actionClickHandler) ;
-  		submitButton.getElement().setAttribute("id", "action_save-id" + iAnnotationFormID) ;
+  		submitButton.getElement().setAttribute("id", "action_save-action" + sActionId) ;
   		submitButton.addStyleName("button green") ;
   		Button submitDraftButton = new Button(constants.validateDraftForm(), actionClickHandler) ;
-  		submitDraftButton.getElement().setAttribute("id", "action_draft-id" + iAnnotationFormID) ;
+  		submitDraftButton.getElement().setAttribute("id", "action_draft-action" + sActionId) ;
   		submitDraftButton.addStyleName("button orange draft_button") ;
   		Button cancelButton = new Button(constants.generalCancel(), actionClickHandler) ;
-  		cancelButton.getElement().setAttribute("id", "action_cancel-id" + iAnnotationFormID) ;
+  		cancelButton.getElement().setAttribute("id", "action_cancel-action" + sActionId) ;
   		cancelButton.addStyleName("cancel_button button red") ;
   		
   		buttonsPanel.add(submitButton) ;
@@ -1278,18 +1280,25 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
    * Get the {@link FormBlockPanel} for a given annotation identifier
    * 
    * @param iAnnotationID Annotation identifier to look for
+   * @param sActionId     Action identifier, only used when annotation identifier is <code>-1</code>
    * 
    * @return The {@link FormBlockPanel} if found, <code>null</code> if not
    */
   @Override
-  public FormBlockPanel getActionFromAnnotationID(final int iAnnotationID)
+  public FormBlockPanel getActionFromAnnotationID(final int iAnnotationID, final String sActionId)
   {
   	if ((null == _aActions) || _aActions.isEmpty())
   		return null ;
   	
   	for (FormBlockPanel formBlockPanel : _aActions)
-  		if (getAnnotationId(formBlockPanel, "annotation-id") == iAnnotationID)
-  			return formBlockPanel ;
+  		if (formBlockPanel.getFormIdentifier() == iAnnotationID)
+  		{
+  			if (iAnnotationID > 0)
+  				return formBlockPanel ;
+  			
+  			if ((false == sActionId.isEmpty()) && sActionId.equals(formBlockPanel.getActionIdentifier()))
+  				return formBlockPanel ;
+  		}
   	
   	return null ;
   }
@@ -1443,6 +1452,43 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 		} catch (NumberFormatException e) {
 			return -2 ;
 		}
+	}
+	
+	/**
+	 * Get the action identifier an action buttons (usually for a new annotation) applies to
+	 * 
+	 * @param actionButton The Widget to get information from
+	 * 
+	 * @return <code>""</code> if failed, the action identifier if successful
+	 * 
+	 */
+	@Override
+	public String getActionButtonActionID(Widget actionButton)
+	{
+		if (null == actionButton)
+			return "" ;
+		
+		String sButtonId = actionButton.getElement().getAttribute("id") ;
+		if (sButtonId.isEmpty())
+			return "" ;
+		
+		// Action buttons' id is in the form "action-type-action" + form identifier (example: action_edit-action1B)
+		//
+		// We get the action type to find what follows
+		//
+		String sActionType = getActionButtonType(actionButton) ;
+		if (sActionType.isEmpty())
+			return "" ;
+		
+		int iActionTypeLen = sActionType.length() ;
+		String sNext = sButtonId.substring(iActionTypeLen) ;
+		
+		// We get what is after "-action"
+		//
+		if ((false == sNext.startsWith("-action")) || (sNext.length() < 4))
+			return "" ;
+		
+		return sNext.substring(7) ;
 	}
 	
 	/** 

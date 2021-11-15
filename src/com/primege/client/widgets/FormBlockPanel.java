@@ -49,7 +49,6 @@ public class FormBlockPanel extends FlexTable
   
   /**
    * Default Constructor
-   *
    */
   public FormBlockPanel(final FormBlockInformation presentation)
   {
@@ -421,6 +420,19 @@ public class FormBlockPanel extends FlexTable
 	}
 	public void setEditedBlock(FormBlock<FormDataData> editedBlock) {
 		_editedBlock = editedBlock ;
+	}
+	
+	/**
+	 * Get the form identifier
+	 * 
+	 * @return <code>-1</code> for a new form or annotation, the form's identifier is an edited form or annotation
+	 */
+	public int getFormIdentifier()
+	{
+		if (null == _editedBlock)
+			return -1 ;
+		
+		return _editedBlock.getFormId() ;
 	}
 	
 	public String getActionIdentifier() {

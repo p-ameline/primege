@@ -105,7 +105,7 @@ public class GetFormInBase
 		if (null == form)
 			return false ;
 		
-		FormInformationManager formInformationManager = new FormInformationManager(_iUserId, _dbConnector, FormInformationManager.InformationType.form) ;
+		FormInformationManager formInformationManager = new FormInformationManager(_iUserId, _dbConnector) ;
 		
 		return formInformationManager.loadFormData(iFormId, form) ; 
 	}
