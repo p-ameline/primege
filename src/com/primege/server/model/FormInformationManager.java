@@ -393,16 +393,20 @@ public class FormInformationManager
       return false ;
     }
     
+    // Information may be empty, for example, a validation annotation may just contain a date in form's document label
+    //
     if (aInformation.isEmpty())
     {
       Logger.trace(sFctName + ": Empty form information array", _iUserId, Logger.TraceLevel.WARNING) ;
       return true ;
     }
-    
-    for (FormDataData formInformation : aInformation)
+    else
     {
-      formInformation.setFormId(iFormId) ;
-      storeOrUpdateInformation(formInformation) ;
+    	for (FormDataData formInformation : aInformation)
+    	{
+    		formInformation.setFormId(iFormId) ;
+    		storeOrUpdateInformation(formInformation) ;
+    	}
     }
     
     suppressDeletedInformation(iFormId, aInformation) ; 
