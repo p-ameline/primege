@@ -41,7 +41,7 @@ public class FormLinkManager
 		if ((null == _dbConnector) || (null == dataToInsert))
 			return false ;
 		
-		String sQuery = "INSERT INTO formLink (subjectFormID, predicate, objectFormID, entryDate) VALUES (?, ?, ?, ?)" ;
+		String sQuery = "INSERT INTO formLink (subjectFormID, predicate, objectFormID, entryDate, deleted) VALUES (?, ?, ?, ?, ?)" ;
 		
 		_dbConnector.prepareStatememt(sQuery, Statement.RETURN_GENERATED_KEYS) ;
 		if (null == _dbConnector.getPreparedStatement())
@@ -55,6 +55,7 @@ public class FormLinkManager
 		_dbConnector.setStatememtString(2, dataToInsert.getPredicate()) ;
 		_dbConnector.setStatememtInt(3, dataToInsert.getObjectFormId()) ;
 		_dbConnector.setStatememtString(4, dataToInsert.getEntryDateHour()) ;
+		_dbConnector.setStatememtString(5, dataToInsert.getStatusAsString()) ;
 		
 		// Execute query 
 		//
@@ -185,10 +186,11 @@ public class FormLinkManager
 	  * 
 	  * @param iFormId ID of Form to get links it is the subject of
 	  * @param aLinks  List to get filled with found links
+	  * @param bOnlyValid <code>true</code> to get only valid links, <code>false</code> to also include deleted ones
 	  * 
 	  * @return <code>true</code> if found, <code>false</code> if not
 	  */
-	public boolean getLinksForFormAsSubject(int iFormId, ArrayList<FormLink> aLinks)
+	public boolean getLinksForFormAsSubject(int iFormId, ArrayList<FormLink> aLinks, boolean bOnlyValid)
 	{
 		String sFctName = "FormLinkManager.getLinksForFormAsSubject" ;
 		
@@ -199,6 +201,9 @@ public class FormLinkManager
 		}
 		
 		String sQuery = "SELECT * FROM formLink WHERE subjectFormID = ?" ;
+		
+		if (bOnlyValid)
+			sQuery += " AND deleted = '0'" ;
 		
 		_dbConnector.prepareStatememt(sQuery, Statement.NO_GENERATED_KEYS) ;
 		_dbConnector.setStatememtInt(1, iFormId) ;
@@ -238,7 +243,74 @@ public class FormLinkManager
 		_dbConnector.closeResultSet() ;
 		_dbConnector.closePreparedStatement() ;
 		
-		Logger.trace(sFctName + ": " + iNbLinks + " FormLink found for form = " + iFormId, _iUserId, Logger.TraceLevel.WARNING) ;
+		Logger.trace(sFctName + ": " + iNbLinks + " FormLink found for form = " + iFormId + " as subject.", _iUserId, Logger.TraceLevel.WARNING) ;
+		
+		return true ;
+	}
+	
+	/**
+	  * Check if there is any {@link FormLink} with this Id as subject in database and, if true get its content
+	  * 
+	  * @param iFormId ID of Form to get links it is the subject of
+	  * @param aLinks  List to get filled with found links
+	  * @param bOnlyValid <code>true</code> to get only valid links, <code>false</code> to also include deleted ones
+	  * 
+	  * @return <code>true</code> if found, <code>false</code> if not
+	  */
+	public boolean getLinksForAnnotationAsObject(int iAnnotationId, ArrayList<FormLink> aLinks, boolean bOnlyValid)
+	{
+		String sFctName = "FormLinkManager.getLinksForAnnotationAsObject" ;
+		
+		if ((null == _dbConnector) || (-1 == iAnnotationId))
+		{
+			Logger.trace(sFctName + ": bad parameter", _iUserId, Logger.TraceLevel.ERROR) ;
+			return false ;
+		}
+		
+		String sQuery = "SELECT * FROM formLink WHERE objectFormID = ?" ;
+		
+		if (bOnlyValid)
+			sQuery += " AND deleted = '0'" ;
+		
+		_dbConnector.prepareStatememt(sQuery, Statement.NO_GENERATED_KEYS) ;
+		_dbConnector.setStatememtInt(1, iAnnotationId) ;
+	   		
+		if (false == _dbConnector.executePreparedStatement())
+		{
+			Logger.trace(sFctName + ": failed query " + sQuery, _iUserId, Logger.TraceLevel.ERROR) ;
+			_dbConnector.closePreparedStatement() ;
+			return false ;
+		}
+		
+		ResultSet rs = _dbConnector.getResultSet() ;
+		if (null == rs)
+		{
+			Logger.trace(sFctName + ": no FormLink found for annotation " + iAnnotationId + " as object", _iUserId, Logger.TraceLevel.WARNING) ;
+			_dbConnector.closePreparedStatement() ;
+			return true ;
+		}
+		
+		int iNbLinks = 0 ;
+
+		try
+		{
+			while (rs.next())
+			{
+				FormLink link = new FormLink() ;
+				fillDataFromResultSet(rs, link) ;
+				aLinks.add(link) ;
+
+				iNbLinks++ ;
+			}
+		} catch (SQLException e)
+		{
+			Logger.trace(sFctName + ": exception when iterating results " + e.getMessage(), _iUserId, Logger.TraceLevel.ERROR) ;
+		}
+		
+		_dbConnector.closeResultSet() ;
+		_dbConnector.closePreparedStatement() ;
+		
+		Logger.trace(sFctName + ": " + iNbLinks + " FormLink found for annotation = " + iAnnotationId + " as object.", _iUserId, Logger.TraceLevel.WARNING) ;
 		
 		return true ;
 	}
@@ -249,10 +321,11 @@ public class FormLinkManager
 	  * @param iSubjectFormId ID of subject form of the link to find
 	  * @param iObjectFormId  ID of object form of the link to find
 	  * @param foundData      {@link FormLink} to get existing information
+	  * @param bOnlyValid     <code>true</code> to get only valid links, <code>false</code> to also include deleted ones
 	  * 
 	  * @return <code>true</code> if found, <code>false</code> if not
 	  */
-	public boolean getLinkBetweenForms(int iSubjectFormId, int iObjectFormId, FormLink foundData)
+	public boolean getLinkBetweenForms(int iSubjectFormId, int iObjectFormId, FormLink foundData, boolean bOnlyValid)
 	{
 		String sFctName = "FormLinkManager.existData" ;
 		
@@ -263,6 +336,9 @@ public class FormLinkManager
 		}
 		
 		String sQuery = "SELECT * FROM formLink WHERE subjectFormID = ? AND objectFormID = ?" ;
+		
+		if (bOnlyValid)
+			sQuery += " AND deleted = '0'" ;
 		
 		_dbConnector.prepareStatememt(sQuery, Statement.NO_GENERATED_KEYS) ;
 		_dbConnector.setStatememtInt(1, iSubjectFormId) ;
@@ -308,9 +384,9 @@ public class FormLinkManager
 	/**
 	  * Update a {@link FormLink} in database
 	  * 
-	  * @return <code>true</code> if creation succeeded, <code>false</code> if not
 	  * @param  dataToUpdate FormLink to update
 	  * 
+	  * @return <code>true</code> if update succeeded, <code>false</code> if not
 	  */
 	private boolean forceUpdateData(FormLink dataToUpdate)
 	{
@@ -324,7 +400,7 @@ public class FormLinkManager
 			
 		// Prepare SQL query
 		//
-		String sQuery = "UPDATE formLink SET subjectFormID = ?, predicate = ?, objectFormID = ?, entryDate = ?" +
+		String sQuery = "UPDATE formLink SET subjectFormID = ?, predicate = ?, objectFormID = ?, entryDate = ?, deleted = ?" +
 				                          " WHERE " +
 				                               "id = '" + dataToUpdate.getLinkId() + "'" ; 
 		
@@ -340,6 +416,7 @@ public class FormLinkManager
 		_dbConnector.setStatememtString(2, dataToUpdate.getPredicate()) ;
 		_dbConnector.setStatememtInt(3, dataToUpdate.getObjectFormId()) ;
 		_dbConnector.setStatememtString(4, dataToUpdate.getEntryDateHour()) ;
+		_dbConnector.setStatememtString(5, dataToUpdate.getStatusAsString()) ;
 				
 		// Execute query 
 		//
@@ -359,11 +436,60 @@ public class FormLinkManager
 	}
 
 	/**
+	 * Delete a link (to be accurate, mark it as deleted)
+	 * 
+	 * @param iLinkId Identifier of link to delete
+	 * 
+	 * @return @return <code>true</code> if deletion succeeded, <code>false</code> if not
+	 */
+	public boolean deleteLink(int iLinkId)
+	{
+		String sFctName = "FormLinkManager.deleteLink" ;
+		
+		if ((null == _dbConnector) || (iLinkId < 0))
+		{
+			Logger.trace(sFctName + ": bad parameter", _iUserId, Logger.TraceLevel.ERROR) ;
+			return false ;
+		}
+		
+		// Prepare sql query
+		//
+		String sQuery = "UPDATE form SET deleted = \"1\"" +
+				                                        " WHERE " +
+				                                                "id = ?" ; 
+
+		_dbConnector.prepareStatememt(sQuery, Statement.NO_GENERATED_KEYS) ;
+		if (null == _dbConnector.getPreparedStatement())
+		{
+			Logger.trace(sFctName + ": cannot get Statement", _iUserId, Logger.TraceLevel.ERROR) ;
+			_dbConnector.closePreparedStatement() ;
+			return false ;
+		}
+
+		_dbConnector.setStatememtInt(1, iLinkId) ;
+
+		// Execute query 
+		//
+		int iNbAffectedRows = _dbConnector.executeUpdatePreparedStatement(false) ;
+		if (-1 == iNbAffectedRows)
+		{
+			Logger.trace(sFctName + ": failed query " + sQuery, _iUserId, Logger.TraceLevel.ERROR) ;
+			_dbConnector.closePreparedStatement() ;
+			return false ;
+		}
+
+		Logger.trace(sFctName + ": successfully deleted link " + iLinkId, _iUserId, Logger.TraceLevel.SUBSTEP) ;
+
+		_dbConnector.closePreparedStatement() ;
+		
+		return true ;
+	}
+	
+	/**
 	  * Initialize an {@link FormLink} from a query ResultSet 
 	  * 
 	  * @param rs        ResultSet of a query
 	  * @param foundData FormLink to fill
-	  * 
 	  */
 	public void fillDataFromResultSet(final ResultSet rs, FormLink foundData)
 	{
@@ -377,6 +503,7 @@ public class FormLinkManager
 			foundData.setPredicate(rs.getString("predicate")) ;
 			foundData.setObjectFormId(rs.getInt("objectFormID")) ;
 			foundData.setEntryDateHour(rs.getString("entryDate")) ;
+			foundData.setStatusFromString(rs.getString("deleted")) ;
 		} 
 		catch (SQLException e) {
 			Logger.trace("FormLinkManager.fillDataFromResultSet: exception when processing results set: " + e.getMessage(), _iUserId, Logger.TraceLevel.ERROR) ;

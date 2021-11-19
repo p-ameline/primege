@@ -165,7 +165,7 @@ public class GetFormInBase
 		ArrayList<FormLink> aLinks = new ArrayList<FormLink>() ;
 		
 		FormLinkManager formLinksManager = new FormLinkManager(_iUserId, _dbConnector) ;
-		if (false == formLinksManager.getLinksForFormAsSubject(iFormId, aLinks))
+		if (false == formLinksManager.getLinksForFormAsSubject(iFormId, aLinks, true))
 			return false ;
 		
 		form.setLinks(aLinks) ;

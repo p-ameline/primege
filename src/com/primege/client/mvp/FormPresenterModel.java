@@ -41,12 +41,13 @@ import com.primege.client.widgets.FormBlockPanel;
 import com.primege.shared.GlobalParameters;
 import com.primege.shared.database.Dictionary;
 import com.primege.shared.database.FormDataData;
-import com.primege.shared.database.FormDataModel;
 import com.primege.shared.database.FormLink;
 import com.primege.shared.model.Action;
 import com.primege.shared.model.FormBlock;
 import com.primege.shared.model.FormBlockModel;
 import com.primege.shared.model.TraitPath;
+import com.primege.shared.rpc.DeleteAnnotationAction;
+import com.primege.shared.rpc.DeleteAnnotationResult;
 import com.primege.shared.rpc.GetArchetypeAction;
 import com.primege.shared.rpc.GetArchetypeResult;
 import com.primege.shared.rpc.GetFormsResult;
@@ -227,23 +228,23 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		/**
 		 * Reacts to Ok button in delete confirmation dialog box
 		 * */
-/*
 		display.getDeleteConfirmationOk().addClickHandler(new ClickHandler(){
 			public void onClick(final ClickEvent event)
 			{
 			  display.closeDeleteConfirmationDialog() ;
 			  
-			  deleteCode(_currentDeleteObject.getBasketId(), _currentDeleteObject.getSoapSlot(), _currentDeleteObject.getCode()) ;
+			  deleteAnnotation() ;
 			}
 		});
-*/		
+		
 		/**
 		 * Reacts to Cancel button in delete confirmation dialog box
 		 * */
 		display.getDeleteConfirmationCancel().addClickHandler(new ClickHandler(){
 			public void onClick(final ClickEvent event)
 			{
-			  display.closeDeleteConfirmationDialog() ; 
+			  display.closeDeleteConfirmationDialog() ;
+			  _iCurrentDeleteForm = -1 ;
 			}
 		});
 		
@@ -516,6 +517,11 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 			
 			Log.info("Form saved for " + sMsg) ;
 			
+			_bSaveInProgress = false ;
+			
+			leaveWhenSaved() ;
+			
+/*
 			// Update the FormBlockPanel
 			//
 			FormBlockPanel annotationBlock = null ;
@@ -563,6 +569,9 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 					editedBlock.addLink(link);
 			
 			_bSaveInProgress = false ;
+			
+			leaveWhenSaved() ;
+*/
 		}
 	}
 		
@@ -848,7 +857,6 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * 
 	 * @param father       XML element the sons of must be processed
 	 * @param masterBlock  The reference panel all controls must be built into
-	 * @param aInformation Edited data. Must be <code>null</code> for a new form or annotation.
 	 *
 	 */
 	protected void initFormFromArchetypeElement(final Element father, FormBlockPanel masterBlock)
@@ -1270,7 +1278,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		
 		// Get a block from display and populate it with annotation's controls
 		//
-		FormBlockPanel annotationPanel = display.getNewActionBlock(sCaption, link.getObjectFormId(), "", _ActionClickHandler) ;
+		FormBlockPanel annotationPanel = display.getNewActionBlock(sCaption, link.getEntryDateHour(), link.getObjectFormId(), "", _ActionClickHandler) ;
 		if (null == annotationPanel)
 		{
 			Log.info("Cannot get a block from display. Annotation for form " + link.getObjectFormId() + " cannot be displayed.") ;
@@ -1350,6 +1358,21 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 			saveAnnotation(iFormId, sActionId, true) ;
 			return ;
 		}
+		if ("action_cancel".equals(sActionType))
+		{
+			cancelAnnotation(iFormId, sActionId) ;
+			return ;
+		}
+		if ("action_edit".equals(sActionType))
+		{
+			editAnnotation(iFormId, sActionId) ;
+			return ;
+		}
+		if ("action_delete".equals(sActionType))
+		{
+			deleteAnnotation(iFormId, sActionId) ;
+			return ;
+		}
 	}
 	
 	/**
@@ -1360,6 +1383,131 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * @param bIsDraft  If <code>true</code>, then save as a draft, if <code>false</code> save as a valid form
 	 */
 	protected void saveAnnotation(final int iFormId, final String sActionId, boolean bIsDraft) {
+	}
+	
+	/**
+	 * Cancel an annotation edition
+	 * 
+	 * @param iFormId   Identifier of the form to cancel the edition of (<code>-1</code> if a new form)
+	 * @param sActionId Identifier of the {@link Action} involved (used only for new annotations)
+	 * @param bIsDraft  If <code>true</code>, then save as a draft, if <code>false</code> save as a valid form
+	 */
+	protected void cancelAnnotation(final int iFormId, final String sActionId)
+	{
+		FormBlockPanel masterBlock = display.getActionFromAnnotationID(iFormId, sActionId) ;
+		
+		if (null == masterBlock)
+		{
+			Log.debug("FormPresenterModel::cancelAnnotation Cannot find information block for form " + iFormId) ;
+			return ;
+		}
+		
+		// New annotation, remove the panel
+		//
+		if (-1 == iFormId)
+		{
+			display.removeActionBlock(masterBlock) ;
+			return ;
+		}
+		
+		// Existing annotation, close the edit panel
+		//
+		display.clearActionBlock(masterBlock) ;
+		
+		display.setActionBlockEditButtons(masterBlock, iFormId, _ActionClickHandler, false) ;
+	}
+	
+	/**
+	 * Edit an annotation
+	 * 
+	 * @param iFormId   Identifier of the form to edit (<code>-1</code> if a new form)
+	 * @param sActionId Identifier of the {@link Action} involved (used only for new annotations)
+	 */
+	protected void editAnnotation(final int iFormId, final String sActionId)
+	{
+		FormBlockPanel masterBlock = display.getActionFromAnnotationID(iFormId, sActionId) ;
+		
+		if (null == masterBlock)
+		{
+			Log.debug("FormPresenterModel::cancelAnnotation Cannot find information block for form " + iFormId) ;
+			return ;
+		}
+		
+		Action action = getActionFromId(sActionId) ;
+		
+		// Populate the panel with action's interface elements
+		//
+		initFormFromArchetypeElement(action.getModel(), masterBlock) ;
+	}
+	
+	/**
+	 * Delete an annotation
+	 * 
+	 * @param iFormId   Identifier of the form to save (<code>-1</code> if a new form)
+	 * @param sActionId Identifier of the {@link Action} involved (used only for new annotations)
+	 * @param bIsDraft  If <code>true</code>, then save as a draft, if <code>false</code> save as a valid form
+	 */
+	protected void deleteAnnotation(final int iFormId, final String sActionId)
+	{
+		FormBlockPanel masterBlock = display.getActionFromAnnotationID(iFormId, sActionId) ;
+		
+		if (null == masterBlock)
+		{
+			Log.debug("FormPresenterModel::cancelAnnotation Cannot find information block for form " + iFormId) ;
+			return ;
+		}
+		
+		_iCurrentDeleteForm = iFormId ;
+		
+		display.popupDeleteConfirmationMessage(false) ;
+	}
+	
+	protected void deleteAnnotation()
+	{
+		if (-1 == _iCurrentDeleteForm)
+			return ;
+		
+		_dispatcher.execute(new DeleteAnnotationAction(_supervisor.getUserId(), _iCurrentDeleteForm), new deleteAnnotationCallback()) ;
+	}
+	
+	protected class deleteAnnotationCallback implements AsyncCallback<DeleteAnnotationResult> 
+	{
+		public deleteAnnotationCallback() {
+			super() ;
+		}
+
+		@Override
+		public void onFailure(Throwable cause) {
+			Log.error("Unhandled error", cause);
+			_iCurrentDeleteForm = -1 ;
+			display.showDefaultCursor() ;
+		}//end handleFailure
+
+		@Override
+		public void onSuccess(DeleteAnnotationResult value) 
+		{
+			display.showDefaultCursor() ;
+			
+			String sMsg = value.getMessage() ;
+			
+			if (false == sMsg.isEmpty())
+			{
+				Log.info("Error when deleting annotation (" + sMsg + ").") ;
+				_iCurrentDeleteForm = -1 ;
+				return ;
+			}
+			
+			FormBlockPanel masterBlock = display.getActionFromAnnotationID(_iCurrentDeleteForm, "") ;
+			
+			if (null == masterBlock)
+			{
+				Log.debug("Cannot find deleted information block for form " + _iCurrentDeleteForm) ;
+				return ;
+			}
+			display.removeActionBlock(masterBlock) ;
+			
+			_iCurrentDeleteForm = -1 ;
+		}
 	}
 	
 	/**
@@ -1390,7 +1538,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		
 		// Create a new panel
 		//
-		FormBlockPanel actionRootBlock = display.getNewActionBlock(selectedAction.getCaption(), -1, selectedAction.getIdentifier(), _ActionClickHandler) ;
+		FormBlockPanel actionRootBlock = display.getNewActionBlock(selectedAction.getCaption(), "", -1, selectedAction.getIdentifier(), _ActionClickHandler) ;
 		
 		// Populate the panel with action's interface elements
 		//
@@ -1586,10 +1734,9 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	
 	/**
 	 * Get information in edited block from a regular path
-	 *
 	 */
-	protected ArrayList<FormDataData> getEditedInformationForRegularPath(final String sPath, final ArrayList<FormControlOptionData> aOptions) {
-		return getInformationForRegularPath(getEditedBlock(), sPath, aOptions) ;
+	protected ArrayList<FormDataData> getEditedInformationForRegularPath(FormBlockModel<FormDataData> aInformation, final String sPath, final ArrayList<FormControlOptionData> aOptions) {
+		return getInformationForRegularPath(aInformation, sPath, aOptions) ;
 	}
 	
 	/**

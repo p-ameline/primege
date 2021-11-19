@@ -64,11 +64,15 @@ public interface PrimegeViewConstants extends Constants
 	String formsSearch() ;
 	String formsFromDay() ;
 	String formsToDay() ;
+	String formsAt() ;
 	String formsCity() ;
 	String formsSite() ;
 	String formEdit() ;
 	String formDelete() ;
 	String confirmDeleteForm() ;
+
+	String annotations() ;
+	String newAnnotations() ;
 	
 	String welcomePseudo() ;
 	

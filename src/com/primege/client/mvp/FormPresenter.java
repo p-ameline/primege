@@ -16,12 +16,14 @@ import com.google.inject.Inject;
 
 import com.primege.client.global.PrimegeSupervisor;
 import com.primege.client.util.FormControlOptionData;
+import com.primege.client.widgets.FormBlockPanel;
 import com.primege.shared.database.CityData;
 import com.primege.shared.database.EventData;
 import com.primege.shared.database.FormData;
 import com.primege.shared.database.FormDataData;
 import com.primege.shared.database.FormDataModel;
 import com.primege.shared.model.FormBlock;
+import com.primege.shared.model.FormBlockModel;
 import com.primege.shared.model.User;
 import com.primege.shared.rpc.GetFormBlockAction;
 import com.primege.shared.rpc.GetFormBlockResult;
@@ -201,16 +203,19 @@ public class FormPresenter extends FormPresenterModel<FormPresenter.Display>
 			dateChngHandler.addChangeHandler(_CheckExistChangeHandler) ;
 	}
 	
-	protected ArrayList<FormDataData> getEditedInformationForPath(final String sPath, final ArrayList<FormControlOptionData> aOptions)
+	protected ArrayList<FormDataData> getEditedInformationForPath(final String sPath, final ArrayList<FormControlOptionData> aOptions, FormBlockModel<FormDataData> aInformation)
 	{
-		if ((null == getEditedBlock()) || (null == sPath) || "".equals(sPath))
+		if ((null == sPath) || "".equals(sPath))
 			return null ;
 		
 		// Artificial paths
 		//
 		if ("$city$".equals(sPath) || "$site$".equals(sPath) || "$date$".equals(sPath))
 		{
-			FormData formData = (FormData) ((FormBlock<FormDataData>) getEditedBlock()).getDocumentLabel() ;
+			if (null == aInformation)
+        return null ;
+			
+			FormData formData = (FormData) ((FormBlock<FormDataData>) aInformation).getDocumentLabel() ;
 			if (null == formData)
 				return null ;
 			
@@ -228,7 +233,7 @@ public class FormPresenter extends FormPresenterModel<FormPresenter.Display>
 			return aContent ;
 		}
 		
-		return getEditedInformationForRegularPath(sPath, aOptions) ;		
+		return getEditedInformationForRegularPath(aInformation, sPath, aOptions) ;
 	}
 	
 	protected void initFromExistingInformation()

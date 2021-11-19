@@ -12,6 +12,8 @@ import com.primege.shared.GlobalParameters;
  */
 public class FormLink implements IsSerializable
 {
+	public enum LinkStatus { valid, deleted } ;
+	
 	/** Identifier of database record */
 	private int        _iLinkId ;
 	
@@ -25,6 +27,8 @@ public class FormLink implements IsSerializable
 	/** Entry time stamp */
 	private String     _sEntryDateHour ;
 	
+	private LinkStatus _iStatus ;
+	
 	/**
 	 * Default constructor (with zero information)
 	 */
@@ -35,7 +39,7 @@ public class FormLink implements IsSerializable
 	/**
 	 * Plain vanilla constructor
 	 */
-	public FormLink(int iID, int iSubjectFormId, final String sPredicate, int iObjectFormId, final String sEntryDateHour) 
+	public FormLink(int iID, int iSubjectFormId, final String sPredicate, int iObjectFormId, final String sEntryDateHour, LinkStatus iStatus) 
 	{
 		_iLinkId        = iID ;
 
@@ -44,6 +48,8 @@ public class FormLink implements IsSerializable
 		_iObjectFormId  = iObjectFormId ;
 
 		_sEntryDateHour = sEntryDateHour ;
+		
+		_iStatus        = iStatus ;
 	}
 	
 	/**
@@ -88,6 +94,8 @@ public class FormLink implements IsSerializable
 		_iObjectFormId  = model._iObjectFormId ;
 		
 		_sEntryDateHour = model._sEntryDateHour ;
+		
+		_iStatus        = model._iStatus ;
 	}
 		
 	/**
@@ -102,6 +110,8 @@ public class FormLink implements IsSerializable
 		_iObjectFormId  = -1 ;
 		
 		_sEntryDateHour = "" ;
+		
+		_iStatus        = LinkStatus.valid ;
 	}
 	
 	/**
@@ -166,31 +176,63 @@ public class FormLink implements IsSerializable
 		_sEntryDateHour = sDate ;
   }
 	
+	public boolean isReallyDeleted() {
+  	return LinkStatus.deleted == _iStatus ;
+  }
+	public void setReallyDeleted() {
+		_iStatus = LinkStatus.deleted ;
+  }
+	
+	public boolean isValid() {
+  	return LinkStatus.valid == _iStatus ;
+  }
+	public void setValid() {
+		_iStatus = LinkStatus.valid ;
+  }
+	
+	public void setStatus(final LinkStatus iStatus) {
+		_iStatus = iStatus ;
+	}
+	public void setStatusFromString(final String sStatus)
+	{
+		if      ("1".equals(sStatus))
+			_iStatus = LinkStatus.deleted ;
+		else
+			_iStatus = LinkStatus.valid ;
+  }
+	public String getStatusAsString()
+	{
+		if (LinkStatus.deleted == _iStatus)
+			return "1" ;
+		
+		return "0" ;
+  }
+	
 	/**
-	  * Determine whether two FormAnnotation are exactly similar
+	  * Determine whether two FormLink are exactly similar
 	  * 
-	  * @param  other FormAnnotation to compare with
+	  * @param  other FormLink to compare with
 	  *
 	  * @return <code>true</code> if all data are the same, <code>false</code> if not
 	  */
 	public boolean equals(FormLink other)
 	{
-		if (this == other) {
+		if (this == other)
 			return true ;
-		}
-		if (null == other) {
+		
+		if (null == other)
 			return false ;
-		}
 		
 		return (_iLinkId        == other._iLinkId) &&
 		       (_iObjectFormId  == other._iObjectFormId) &&
 		       GlobalParameters.areStringsEqual(_sEntryDateHour, other._sEntryDateHour) &&
 		       GlobalParameters.areStringsEqual(_sPredicate, other._sPredicate) &&
-		       (_iSubjectFormId == other._iSubjectFormId) ;
+		       (_iSubjectFormId == other._iSubjectFormId) &&
+		       (_iStatus        == other._iStatus) ;
 	}
 
 	/**
-	  * Determine whether this FormData is exactly similar to another object
+	  * Determine whether this FormLink is exactly similar to another object
 	  * 
 	  * @return true if all data are the same, false if not
 	  * @param o Object to compare with

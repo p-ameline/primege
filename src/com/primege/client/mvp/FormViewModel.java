@@ -2,7 +2,9 @@ package com.primege.client.mvp;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasChangeHandlers;
 import com.google.gwt.event.dom.client.HasClickHandlers;
@@ -18,6 +20,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.inject.Inject;
 
 import com.primege.client.global.PrimegeSupervisorModel;
+import com.primege.client.loc.PrimegeViewConstants;
 import com.primege.client.util.FormControl;
 import com.primege.client.util.FormControlOptionData;
 import com.primege.client.widgets.ControlModel;
@@ -39,9 +42,13 @@ import com.primege.shared.database.FormDataData;
 
 public abstract class FormViewModel extends PrimegeBaseDisplay implements FormInterfaceModel
 {
+	private final PrimegeViewConstants constants = GWT.create(PrimegeViewConstants.class) ;
+	
 	protected boolean                _bScreenShotMode ;
 	
-	private   VerticalPanel          _globalPanel ;
+	private   FlowPanel              _globalPanel ;
+	
+	private   VerticalPanel          _mainFormPanel ;
 	protected FormBlockPanel         _formPanel ;
 	
 	protected FlowPanel              _actionsCommandPannel ;
@@ -62,8 +69,6 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 	private   Label                  _DeleteConfirmationDialogBoxLabel ;
 	private   Button                 _DeleteConfirmationDialogBoxOkButton ;
 	private   Button                 _DeleteConfirmationDialogBoxCancelButton ;
-		
-	
 	
 	protected final PrimegeSupervisorModel _supervisor ;
 				
@@ -97,12 +102,12 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 		
 		// Initialize the global panel
 		//
-		_globalPanel = new VerticalPanel() ;
+		_mainFormPanel = new VerticalPanel() ;
 		// _globalPanel.setWidth("100%");
-		_globalPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER) ;
-		_globalPanel.addStyleName("formGlobalPanel") ;
-		_globalPanel.add(_formPanel) ;
-		_globalPanel.add(buttonsPanel) ;
+		_mainFormPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER) ;
+		_mainFormPanel.addStyleName("mainFormPanel") ;
+		_mainFormPanel.add(_formPanel) ;
+		_mainFormPanel.add(buttonsPanel) ;
 		
 		// Initialize dialog boxes 
 		//
@@ -112,6 +117,10 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 		_actionsCommandPannel = null ;
 		_actionsButtonsPannel = null ;
 		_actionsHistoryPannel = null ;
+		
+		_globalPanel = new FlowPanel() ;
+		_globalPanel.addStyleName("formGlobalPanel") ;
+		_globalPanel.add(_mainFormPanel) ;
 		
 		initWidget(_globalPanel) ;
 	}
@@ -1190,7 +1199,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
    * @return The newly created block
    */
   @Override
-  public FormBlockPanel getNewActionBlock(final String sCaption, final int iAnnotationFormID, final String sActionId, ClickHandler actionClickHandler)
+  public FormBlockPanel getNewActionBlock(final String sCaption, final String sDate, final int iAnnotationFormID, final String sActionId, ClickHandler actionClickHandler)
 	{
   	// First, check if this annotation is already displayed
   	//
@@ -1208,14 +1217,25 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   	
   	if ((null != sCaption) && (false == sCaption.isEmpty()))
   	{
-  		Label captionLabel = new Label(sCaption) ;
+  		String sDisplayedCaption = sCaption ;
+  		
+  		if (false == sDate.isEmpty())
+  		{
+  			EventDateControl dateControl = new EventDateControl(null, "") ;
+				
+  			sDisplayedCaption += " " + constants.formsAt() + " " + dateControl.getDayForDate(sDate) + " " +
+  					dateControl.getMonthLabel(dateControl.getMonthForDate(sDate)) +
+  					" " + dateControl.getYearForDate(sDate) ;
+  		}
+  		
+  		Label captionLabel = new Label(sDisplayedCaption) ;
   		commandPanel.add(captionLabel) ;
   	}
   	
   	// Create bloc panel
   	//
   	FormBlockPanel newBlock = new FormBlockPanel(new FormBlockInformation(null)) ;
-  	newBlock.addStyleName("formBlockPanel") ;
+  	newBlock.addStyleName("annotationFormBlockPanel") ;
   	
   	newBlock.setActionIdentifier(sActionId) ;
   	
@@ -1226,8 +1246,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   	
 		// Create the global action panel
 		//
-  	VerticalPanel actionPanel = new VerticalPanel() ;
-  	actionPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER) ;
+  	FlowPanel actionPanel = new FlowPanel() ;
   	actionPanel.addStyleName("formAnnotationPanel") ;
   	
   	actionPanel.add(commandPanel) ;
@@ -1260,20 +1279,158 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   	//
   	else
   	{
-  		Button editButton = new Button(constants.validateNewForm(), actionClickHandler) ;
+  		Button editButton = new Button(constants.formEdit(), actionClickHandler) ;
   		editButton.getElement().setAttribute("id", "action_edit-id" + iAnnotationFormID) ;
-  		editButton.addStyleName("button white") ;
-  		Button deleteButton = new Button(constants.validateDraftForm(), actionClickHandler) ;
+  		editButton.addStyleName("button small white") ;
+  		Button deleteButton = new Button(constants.formDelete(), actionClickHandler) ;
   		deleteButton.getElement().setAttribute("id", "action_delete-id" + iAnnotationFormID) ;
-  		deleteButton.addStyleName("button white draft_button") ;
+  		deleteButton.addStyleName("button small red") ;
   		
-  		commandPanel.add(editButton) ;
-  		commandPanel.add(deleteButton) ;
+  		// commandPanel.add(editButton) ;
+  		// commandPanel.add(deleteButton) ;
+  		buttonsPanel.add(editButton) ;
+  		buttonsPanel.add(deleteButton) ;
   	}
   	
   	_aActions.add(newBlock) ;
   	
   	return newBlock ;
+  }
+  
+  /**
+   * Install proper buttons to a block depending on its closed/opened status
+   * 
+   * @param formBlockPanel     Block panel to set buttons for
+   * @param iAnnotationFormID  Annotation form identifier for this block
+   * @param actionClickHandler Click handler to attach new buttons to
+   * @param bOpened            <code>true</code> if in Edit mode; <code>false</code> if closed
+   */
+  @Override
+  public void setActionBlockEditButtons(final FormBlockPanel formBlockPanel, final int iAnnotationFormID, ClickHandler actionClickHandler, boolean bOpened)
+	{
+  	if (null == formBlockPanel)
+  		return ;
+  	
+  	Widget parentWidget = formBlockPanel.getParent() ;
+  	if (null == parentWidget)
+  		return ;
+  	
+  	FlowPanel buttonsPanel = getButtonsPanelForBlock(formBlockPanel) ;
+  	if (null == buttonsPanel)
+  		return ;
+  	
+  	buttonsPanel.clear() ;
+  	
+  	// Annotation edition is openend
+   	//
+   	if (bOpened)
+   	{
+   		Button submitButton = new Button(constants.validateNewForm(), actionClickHandler) ;
+   		submitButton.getElement().setAttribute("id", "action_save-id" + iAnnotationFormID) ;
+   		submitButton.addStyleName("button green") ;
+   		Button submitDraftButton = new Button(constants.validateDraftForm(), actionClickHandler) ;
+   		submitDraftButton.getElement().setAttribute("id", "action_draft-id" + iAnnotationFormID) ;
+   		submitDraftButton.addStyleName("button orange draft_button") ;
+   		Button cancelButton = new Button(constants.generalCancel(), actionClickHandler) ;
+   		cancelButton.getElement().setAttribute("id", "action_cancel-id" + iAnnotationFormID) ;
+   		cancelButton.addStyleName("cancel_button button red") ;
+   		
+   		buttonsPanel.add(submitButton) ;
+   		buttonsPanel.add(submitDraftButton) ;
+   		buttonsPanel.add(cancelButton) ;
+   	}
+   	// Previous annotation, create edit and delete buttons
+   	//
+   	else
+   	{
+   		Button editButton = new Button(constants.formEdit(), actionClickHandler) ;
+   		editButton.getElement().setAttribute("id", "action_edit-id" + iAnnotationFormID) ;
+   		editButton.addStyleName("button small white") ;
+   		Button deleteButton = new Button(constants.formDelete(), actionClickHandler) ;
+   		deleteButton.getElement().setAttribute("id", "action_delete-id" + iAnnotationFormID) ;
+   		deleteButton.addStyleName("button small red") ;
+   		
+   		buttonsPanel.add(editButton) ;
+   		buttonsPanel.add(deleteButton) ;
+   	}
+	}
+  
+  /**
+   * Get a block's button panel
+   * 
+   * @param formBlockPanel The panel which buttons panel is to be found
+   * 
+   * @return A panel if found, <code>null</code> if not
+   */
+  protected FlowPanel getButtonsPanelForBlock(final FormBlockPanel formBlockPanel)
+  {
+  	if (null == formBlockPanel)
+  		return null ;
+  	
+  	return getPanelForStyle(formBlockPanel, "formButtonsPanel") ;
+  }
+  
+  /**
+   * Get a block's panel from its CSS style
+   * 
+   * @param formBlockPanel The panel which buttons panel is to be found
+   * @param sStyleName     Name of the style the looked for panel must possess
+   * 
+   * @return A panel if found, <code>null</code> if not
+   */
+  protected FlowPanel getPanelForStyle(final FormBlockPanel formBlockPanel, final String sStyleName)
+  {
+  	if ((null == formBlockPanel) || (null == sStyleName) || sStyleName.isEmpty())
+  		return null ;
+  	
+  	Widget parentWidget = formBlockPanel.getParent() ;
+  	if (null == parentWidget)
+  		return null ;
+  	
+  	FlowPanel actionPanel = (FlowPanel) parentWidget ;
+  	
+  	Iterator<Widget> arrayOfWidgets = actionPanel.iterator() ;
+  	while (arrayOfWidgets.hasNext())
+  	{
+  		Widget ch = arrayOfWidgets.next() ;
+  		if (ch.getStyleName().contains(sStyleName))
+  			return (FlowPanel) ch ;
+  	}
+  	
+  	return null ;
+  }
+  
+  /**
+   * Remove an action block
+   */
+  public void removeActionBlock(final FormBlockPanel formBlockPanel)
+  {
+  	if (null == formBlockPanel)
+  		return ;
+  	
+  	// Remove from the list
+  	//
+  	_aActions.remove(formBlockPanel) ;
+  	
+  	// Remove from parent
+  	//
+  	Widget parentWidget = formBlockPanel.getParent() ;
+  	if (null == parentWidget)
+  		return ;
+  	
+  	parentWidget.removeFromParent() ;
+  }
+  
+  /**
+   * Clear the form block
+   */
+  @Override
+  public void clearActionBlock(final FormBlockPanel formBlockPanel)
+  {
+  	if (null == formBlockPanel)
+  		return ;
+  	
+  	formBlockPanel.clear() ;
   }
   
   /**
@@ -1333,13 +1490,28 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   
   public void initializeActionControls()
   {
+  	// Global actions and annotations panel
+  	//
   	_actionsCommandPannel = new FlowPanel() ;
   	_actionsCommandPannel.addStyleName("annotationsCommandPanel") ;
   	
+  	Label annotationsCaption = new Label(constants.annotations()) ;
+  	annotationsCaption.addStyleName("annotationsCommandPanelCaption") ;
+  	_actionsCommandPannel.add(annotationsCaption) ;
+  	
+  	// Button panel
+  	//
 		_actionsButtonsPannel = new FlowPanel() ;
 		_actionsButtonsPannel.addStyleName("annotationsButtonsPanel") ;
+		
+		Label actionsCaption = new Label(constants.newAnnotations()) ;
+		actionsCaption.addStyleName("annotationsButtonPanelCaption") ;
+		_actionsButtonsPannel.add(actionsCaption) ;
+		
 		_actionsCommandPannel.add(_actionsButtonsPannel) ;
   	
+		// Existing annotations panel
+		//
 		_actionsHistoryPannel = new FlowPanel() ;
 		_actionsHistoryPannel.addStyleName("annotationsHistoryPanel") ;
 		_actionsCommandPannel.add(_actionsHistoryPannel) ;
