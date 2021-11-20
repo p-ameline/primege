@@ -1,6 +1,7 @@
 package com.primege.shared.database ;
 
 import com.google.gwt.user.client.rpc.IsSerializable ;
+
 import com.primege.shared.GlobalParameters;
 
 /**
@@ -12,7 +13,7 @@ import com.primege.shared.GlobalParameters;
  */
 public class FormLink implements IsSerializable
 {
-	public enum LinkStatus { valid, deleted } ;
+	public enum LinkStatus { valid, draft, deleted } ;
 	
 	/** Identifier of database record */
 	private int        _iLinkId ;
@@ -190,6 +191,13 @@ public class FormLink implements IsSerializable
 		_iStatus = LinkStatus.valid ;
   }
 	
+	public boolean isDraft() {
+  	return LinkStatus.draft == _iStatus ;
+  }
+	public void setDraft() {
+		_iStatus = LinkStatus.draft ;
+  }
+	
 	public void setStatus(final LinkStatus iStatus) {
 		_iStatus = iStatus ;
 	}
@@ -197,6 +205,8 @@ public class FormLink implements IsSerializable
 	{
 		if      ("1".equals(sStatus))
 			_iStatus = LinkStatus.deleted ;
+		else if ("B".equals(sStatus))
+			_iStatus = LinkStatus.draft ;
 		else
 			_iStatus = LinkStatus.valid ;
   }
@@ -204,6 +214,8 @@ public class FormLink implements IsSerializable
 	{
 		if (LinkStatus.deleted == _iStatus)
 			return "1" ;
+		if (LinkStatus.draft   == _iStatus)
+			return "B" ;
 		
 		return "0" ;
   }

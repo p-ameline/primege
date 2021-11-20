@@ -128,14 +128,27 @@ public class FormBlock<T extends FormDataData> extends FormBlockModel<T> impleme
 	/**
 	 * Get document's form identifier
 	 * 
-	 * @return <code>-1</code> if there is no document yet, its form identifier if it exists
+	 * @return <code>-1</code> if there is no document yet, its form identifier if a document exists
 	 */
 	public int getFormId()
 	{
-		if (null != _document)
+		if (null == _document)
 			return -1 ;
 		
 		return _document.getFormId() ;
+	}
+	
+	/**
+	 * Get document's action identifier
+	 * 
+	 * @return <code>""</code> if there is no document yet, its action identifier if a document exists
+	 */
+	public String getActionId()
+	{
+		if (null == _document)
+			return "" ;
+		
+		return _document.getActionId() ;
 	}
 	
 /*

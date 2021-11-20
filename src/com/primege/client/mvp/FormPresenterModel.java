@@ -50,6 +50,8 @@ import com.primege.shared.rpc.DeleteAnnotationAction;
 import com.primege.shared.rpc.DeleteAnnotationResult;
 import com.primege.shared.rpc.GetArchetypeAction;
 import com.primege.shared.rpc.GetArchetypeResult;
+import com.primege.shared.rpc.GetFormBlockAction;
+import com.primege.shared.rpc.GetFormBlockResult;
 import com.primege.shared.rpc.GetFormsResult;
 import com.primege.shared.rpc.RegisterFormAnnotationResult;
 import com.primege.shared.rpc.RegisterFormResult;
@@ -445,7 +447,12 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 			leave() ;
 		}
 	}
-		
+	
+	/**
+	 * Callback function called when information comes back from server after the form has just been saved
+	 * 
+	 * @author Philippe
+	 */
 	protected class RegisterFormCallback implements AsyncCallback<RegisterFormResult> 
 	{
 		public RegisterFormCallback() {
@@ -473,7 +480,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				
 				_iFormId = value.getRecordedId() ;
 				
-				leaveWhenSaved() ;
+				leaveWhenSaved(_iFormId) ;
 			}
 			
 			_bSaveInProgress = false ;
@@ -519,7 +526,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 			
 			_bSaveInProgress = false ;
 			
-			leaveWhenSaved() ;
+			leaveWhenSaved(iFormId) ;
 			
 /*
 			// Update the FormBlockPanel
@@ -601,7 +608,14 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		}
 	}
 	
-	protected void leaveWhenSaved()
+	/**
+	 * Leave after the form or an annotation has been saved<br>
+	 * <br>
+	 * WARNING: Usually overwritten by super-classes
+	 * 
+	 * @param iFormId Identifier of form, or annotation, that just was saved
+	 */
+	protected void leaveWhenSaved(int iFormId)
 	{
 		display.setDefaultValues() ;
 		
@@ -1435,10 +1449,84 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		
 		Action action = getActionFromId(sActionId) ;
 		
-		// Populate the panel with action's interface elements
+		// If the edited block is already there, populate the panel with action's interface elements
 		//
-		initFormFromArchetypeElement(action.getModel(), masterBlock) ;
-	}
+		if (null != masterBlock.getEditedBlock())
+		{
+			initFormFromArchetypeElement(action.getModel(), masterBlock) ;
+			display.setActionBlockEditButtons(masterBlock, iFormId, _ActionClickHandler, true) ;
+		}
+		else
+	    _dispatcher.execute(new GetFormBlockAction(_supervisor.getUserId(), iFormId), new editAnnotationCallback()) ;
+	  }
+
+	  protected class editAnnotationCallback implements AsyncCallback<GetFormBlockResult> 
+	  {
+	    public editAnnotationCallback() {
+	      super() ;
+	    }
+
+	    @Override
+	    public void onFailure(Throwable cause) {
+	      Log.error("Unhandled error", cause);
+
+	    }//end handleFailure
+
+	    @Override
+	    public void onSuccess(GetFormBlockResult value) 
+	    {
+	    	String sServerMsg = value.getMessage() ;
+	    	if (false == sServerMsg.isEmpty())
+	    	{
+	    		Log.info("Error when getting annotation from server (" + sServerMsg + ").") ;
+	    		return ;
+	    	}
+
+	    	if (null == value.getFormBlock())
+	    	{
+	    		Log.info("Error when getting annotation from server (no form received).") ;
+	    		return ;
+	    	}
+
+	    	int iFormId = value.getFormBlock().getFormId() ;
+
+	    	if (-1 == iFormId)
+	    	{
+	    		Log.info("Error when getting annotation from server (unknown form received).") ;
+	    		return ;
+	    	}
+	    	
+	    	// Get the block panel and fill it with incoming form
+	    	//
+	    	FormBlockPanel masterBlock = display.getActionFromAnnotationID(iFormId, "") ;
+	    	
+	    	if (null == masterBlock)
+	    	{
+	    		Log.debug("FormPresenterModel::editAnnotation Cannot find information block for form " + iFormId) ;
+	    		return ;
+	    	}
+	    	
+	    	masterBlock.setEditedBlock(new FormBlock<FormDataData>(value.getFormBlock())) ;
+	    	masterBlock.setActionIdentifier(value.getFormBlock().getActionId()) ;
+	    	
+	    	// Get the Action in order to find the specific archetype for this annotation
+	    	//
+	    	Action action = getActionFromId(masterBlock.getActionIdentifier()) ;
+	    	
+	    	if (null == action)
+	    	{
+	    		Log.debug("FormPresenterModel::editAnnotation Cannot find action from identifier " + masterBlock.getActionIdentifier()) ;
+	    		return ;
+	    	}
+	    	
+	    	// If the edited block is already there, populate the panel with action's interface elements
+	    	//
+	    	initFormFromArchetypeElement(action.getModel(), masterBlock) ;
+	    	display.setActionBlockEditButtons(masterBlock, iFormId, _ActionClickHandler, true) ;
+	    }
+	  }
+
+	
 	
 	/**
 	 * Delete an annotation

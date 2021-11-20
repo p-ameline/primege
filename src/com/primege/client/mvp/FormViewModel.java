@@ -1447,19 +1447,59 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   	if ((null == _aActions) || _aActions.isEmpty())
   		return null ;
   	
+  	if (iAnnotationID > 0)
+  		return getSpecificActionFromAnnotationID(iAnnotationID) ;
+  	
+  	// If there, it means that iAnnotationID = -1
+  	//
   	for (FormBlockPanel formBlockPanel : _aActions)
-  		if (formBlockPanel.getFormIdentifier() == iAnnotationID)
+  	{
+  		if (-1 == formBlockPanel.getFormIdentifier())
   		{
-  			if (iAnnotationID > 0)
-  				return formBlockPanel ;
-  			
   			if ((false == sActionId.isEmpty()) && sActionId.equals(formBlockPanel.getActionIdentifier()))
   				return formBlockPanel ;
   		}
+  	}
   	
   	return null ;
   }
 
+  /**
+   * Get the {@link FormBlockPanel} for a really specified (not -1) annotation identifier
+   * 
+   * @param iAnnotationID Annotation identifier to look for
+   * 
+   * @return The {@link FormBlockPanel} if found, <code>null</code> if not
+   */
+  protected FormBlockPanel getSpecificActionFromAnnotationID(final int iAnnotationID)
+  {
+  	if ((null == _aActions) || _aActions.isEmpty())
+  		return null ;
+  	
+  	String sIdAsString = "" + iAnnotationID ;
+  	
+  	for (FormBlockPanel formBlockPanel : _aActions)
+  	{
+  		// The edited block is instantiated, get its form identifier here
+  		//
+  		if (null != formBlockPanel.getEditedBlock())
+  		{
+  			if (formBlockPanel.getFormIdentifier() == iAnnotationID)
+  				return formBlockPanel ;
+  		}
+  		// If not instantiated, get form identifier from id
+  		//
+  		else
+  		{
+  			String sPanelId = getIdentifierFromPattern(formBlockPanel, "annotation-id") ;
+  			if (sIdAsString.equals(sPanelId))
+  				return formBlockPanel ;
+  		}
+  	}
+  	
+  	return null ;
+  }
+  
   /** 
 	 * When a widget "id" attribute is in the form "pattern" + identifier ; we must parse it to return the
 	 * identifier as an int
