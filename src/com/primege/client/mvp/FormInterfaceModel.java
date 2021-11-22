@@ -74,7 +74,7 @@ public interface FormInterfaceModel extends PrimegeBaseInterface
    */
 	public FormBlockPanel  getActionFromAnnotationID(final int iAnnotationID, final String sActionId) ;
 	
-	public void            initializeActionControls() ;
+	public void            initializeActionControls(boolean bAddNewActionsButtons) ;
 	public void            initializeActionHistory() ;
 	public void            addNewActionButton(final String sCaption, ClickHandler handler, final String sActionId) ;
 	public String          getNewAnnotationID(Widget sender) ;

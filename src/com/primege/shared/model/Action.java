@@ -32,6 +32,7 @@ public class Action implements IsSerializable
 	protected String               _sMailFrom ;
 	protected ArrayList<MailTo>    _aMailAddresses = new ArrayList<MailTo>() ;
 	protected String               _sMailCaption ;
+	protected boolean              _bMailPrntScreen ;
 	
 	/**
 	 * Default constructor (with zero information)
@@ -124,6 +125,7 @@ public class Action implements IsSerializable
 		_sMailTemplate   = model._sMailTemplate ;
 		_sMailFrom       = model._sMailFrom ;
 		_sMailCaption    = model._sMailCaption ;
+		_bMailPrntScreen = model._bMailPrntScreen ;
 	}
 		
 	/**
@@ -146,6 +148,7 @@ public class Action implements IsSerializable
 		_sMailTemplate   = "" ;
 		_sMailFrom       = "" ;
 		_sMailCaption    = "" ;
+		_bMailPrntScreen = true ;
 	}
 	
 	/**
@@ -247,6 +250,13 @@ public class Action implements IsSerializable
 			return ;
 		
 		_aMailAddresses.add(address) ;
+	}
+	
+	public boolean isPrintScreenAttached() {
+		return _bMailPrntScreen ;
+	}
+	public void setPrintScreenAttached(final boolean bMailPrntScreen) {
+		_bMailPrntScreen = bMailPrntScreen ;
 	}
 	
 	/**

@@ -1198,104 +1198,106 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
    * 
    * @return The newly created block
    */
-  @Override
-  public FormBlockPanel getNewActionBlock(final String sCaption, final String sDate, final int iAnnotationFormID, final String sActionId, ClickHandler actionClickHandler)
+	@Override
+	public FormBlockPanel getNewActionBlock(final String sCaption, final String sDate, final int iAnnotationFormID, final String sActionId, ClickHandler actionClickHandler)
 	{
-  	// First, check if this annotation is already displayed
-  	//
-  	FormBlockPanel existingFBP = getActionFromAnnotationID(iAnnotationFormID, "") ;
-  	if (null != existingFBP)
-  		return existingFBP ;
-  	
-  	// If not already existing, create it
-  	//
-  	
-  	// Create command panel
-  	//
-  	FlowPanel commandPanel = new FlowPanel() ;
-  	commandPanel.addStyleName("annotationCommandPanel") ;
-  	
-  	if ((null != sCaption) && (false == sCaption.isEmpty()))
-  	{
-  		String sDisplayedCaption = sCaption ;
-  		
-  		if (false == sDate.isEmpty())
-  		{
-  			EventDateControl dateControl = new EventDateControl(null, "") ;
-				
-  			sDisplayedCaption += " " + constants.formsAt() + " " + dateControl.getDayForDate(sDate) + " " +
-  					dateControl.getMonthLabel(dateControl.getMonthForDate(sDate)) +
-  					" " + dateControl.getYearForDate(sDate) ;
-  		}
-  		
-  		Label captionLabel = new Label(sDisplayedCaption) ;
-  		commandPanel.add(captionLabel) ;
-  	}
-  	
-  	// Create bloc panel
-  	//
-  	FormBlockPanel newBlock = new FormBlockPanel(new FormBlockInformation(null)) ;
-  	newBlock.addStyleName("annotationFormBlockPanel") ;
-  	
-  	newBlock.setActionIdentifier(sActionId) ;
-  	
-  	// Create buttons panel
-  	//
-  	FlowPanel buttonsPanel = new FlowPanel() ;
-		buttonsPanel.addStyleName("formButtonsPanel") ;
-  	
+		// First, check if this annotation is already displayed
+		//
+		FormBlockPanel existingFBP = getActionFromAnnotationID(iAnnotationFormID, "") ;
+		if (null != existingFBP)
+			return existingFBP ;
+
+		// If not already existing, create it
+		//
+
+		// Create command panel
+		//
+		FlowPanel commandPanel = new FlowPanel() ;
+		commandPanel.addStyleName("annotationCommandPanel") ;
+
+		if ((null != sCaption) && (false == sCaption.isEmpty()))
+		{
+			String sDisplayedCaption = sCaption ;
+
+			if (false == sDate.isEmpty())
+			{
+				EventDateControl dateControl = new EventDateControl(null, "") ;
+
+				sDisplayedCaption += " " + constants.formsAt() + " " + dateControl.getDayForDate(sDate) + " " +
+						dateControl.getMonthLabel(dateControl.getMonthForDate(sDate)) +
+						" " + dateControl.getYearForDate(sDate) ;
+			}
+
+			Label captionLabel = new Label(sDisplayedCaption) ;
+			commandPanel.add(captionLabel) ;
+		}
+
+		// Create bloc panel
+		//
+		FormBlockPanel newBlock = new FormBlockPanel(new FormBlockInformation(null)) ;
+		newBlock.addStyleName("annotationFormBlockPanel") ;
+
+		newBlock.setActionIdentifier(sActionId) ;
+		newBlock.getElement().setAttribute("id", "annotation-id" + iAnnotationFormID) ;
+
 		// Create the global action panel
 		//
-  	FlowPanel actionPanel = new FlowPanel() ;
-  	actionPanel.addStyleName("formAnnotationPanel") ;
-  	
-  	actionPanel.add(commandPanel) ;
-  	actionPanel.add(newBlock) ;
-  	actionPanel.add(buttonsPanel) ;
-  	
-  	_actionsHistoryPannel.add(actionPanel) ;
-  	
-  	newBlock.getElement().setAttribute("id", "annotation-id" + iAnnotationFormID) ;
-  	
-  	// New annotation, create save and cancel buttons immediately
-  	//
-  	if (-1 == iAnnotationFormID)
-  	{
-  		Button submitButton = new Button(constants.validateNewForm(), actionClickHandler) ;
-  		submitButton.getElement().setAttribute("id", "action_save-action" + sActionId) ;
-  		submitButton.addStyleName("button green") ;
-  		Button submitDraftButton = new Button(constants.validateDraftForm(), actionClickHandler) ;
-  		submitDraftButton.getElement().setAttribute("id", "action_draft-action" + sActionId) ;
-  		submitDraftButton.addStyleName("button orange draft_button") ;
-  		Button cancelButton = new Button(constants.generalCancel(), actionClickHandler) ;
-  		cancelButton.getElement().setAttribute("id", "action_cancel-action" + sActionId) ;
-  		cancelButton.addStyleName("cancel_button button red") ;
-  		
-  		buttonsPanel.add(submitButton) ;
-  		buttonsPanel.add(submitDraftButton) ;
-  		buttonsPanel.add(cancelButton) ;
-  	}
-  	// Previous annotation, create edit and delete buttons
-  	//
-  	else
-  	{
-  		Button editButton = new Button(constants.formEdit(), actionClickHandler) ;
-  		editButton.getElement().setAttribute("id", "action_edit-id" + iAnnotationFormID) ;
-  		editButton.addStyleName("button small white") ;
-  		Button deleteButton = new Button(constants.formDelete(), actionClickHandler) ;
-  		deleteButton.getElement().setAttribute("id", "action_delete-id" + iAnnotationFormID) ;
-  		deleteButton.addStyleName("button small red") ;
-  		
-  		// commandPanel.add(editButton) ;
-  		// commandPanel.add(deleteButton) ;
-  		buttonsPanel.add(editButton) ;
-  		buttonsPanel.add(deleteButton) ;
-  	}
-  	
-  	_aActions.add(newBlock) ;
-  	
-  	return newBlock ;
-  }
+		FlowPanel actionPanel = new FlowPanel() ;
+		actionPanel.addStyleName("formAnnotationPanel") ;
+
+		actionPanel.add(commandPanel) ;
+		actionPanel.add(newBlock) ;
+
+		// Create buttons panel
+		//
+		if (false == _bScreenShotMode)
+		{
+			FlowPanel buttonsPanel = new FlowPanel() ;
+			buttonsPanel.addStyleName("formButtonsPanel") ;
+			actionPanel.add(buttonsPanel) ;
+
+			// New annotation, create save and cancel buttons immediately
+			//
+			if (-1 == iAnnotationFormID)
+			{
+				Button submitButton = new Button(constants.validateNewForm(), actionClickHandler) ;
+				submitButton.getElement().setAttribute("id", "action_save-action" + sActionId) ;
+				submitButton.addStyleName("button green") ;
+				Button submitDraftButton = new Button(constants.validateDraftForm(), actionClickHandler) ;
+				submitDraftButton.getElement().setAttribute("id", "action_draft-action" + sActionId) ;
+				submitDraftButton.addStyleName("button orange draft_button") ;
+				Button cancelButton = new Button(constants.generalCancel(), actionClickHandler) ;
+				cancelButton.getElement().setAttribute("id", "action_cancel-action" + sActionId) ;
+				cancelButton.addStyleName("cancel_button button red") ;
+
+				buttonsPanel.add(submitButton) ;
+				buttonsPanel.add(submitDraftButton) ;
+				buttonsPanel.add(cancelButton) ;
+			}
+			// Previous annotation, create edit and delete buttons
+			//
+			else
+			{
+				Button editButton = new Button(constants.formEdit(), actionClickHandler) ;
+				editButton.getElement().setAttribute("id", "action_edit-id" + iAnnotationFormID) ;
+				editButton.addStyleName("button small white") ;
+				Button deleteButton = new Button(constants.formDelete(), actionClickHandler) ;
+				deleteButton.getElement().setAttribute("id", "action_delete-id" + iAnnotationFormID) ;
+				deleteButton.addStyleName("button small red") ;
+
+				// commandPanel.add(editButton) ;
+				// commandPanel.add(deleteButton) ;
+				buttonsPanel.add(editButton) ;
+				buttonsPanel.add(deleteButton) ;
+			}
+		}
+		
+		_actionsHistoryPannel.add(actionPanel) ;
+
+		_aActions.add(newBlock) ;
+
+		return newBlock ;
+	}
   
   /**
    * Install proper buttons to a block depending on its closed/opened status
@@ -1308,7 +1310,7 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   @Override
   public void setActionBlockEditButtons(final FormBlockPanel formBlockPanel, final int iAnnotationFormID, ClickHandler actionClickHandler, boolean bOpened)
 	{
-  	if (null == formBlockPanel)
+  	if ((null == formBlockPanel) || _bScreenShotMode)
   		return ;
   	
   	Widget parentWidget = formBlockPanel.getParent() ;
@@ -1528,39 +1530,55 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   	}
   }
   
-  public void initializeActionControls()
+  /**
+   * Initialize the set of panels dedicated to annotations management
+   * 
+   * @param bAddNewActionsButtons If <code>true</code>, create the panel for new actions
+   */
+  @Override
+  public void initializeActionControls(boolean bAddNewActionsButtons)
   {
   	// Global actions and annotations panel
   	//
   	_actionsCommandPannel = new FlowPanel() ;
   	_actionsCommandPannel.addStyleName("annotationsCommandPanel") ;
-  	
-  	Label annotationsCaption = new Label(constants.annotations()) ;
-  	annotationsCaption.addStyleName("annotationsCommandPanelCaption") ;
-  	_actionsCommandPannel.add(annotationsCaption) ;
-  	
-  	// Button panel
+
+  	if (false == _bScreenShotMode)
+  	{
+  		Label annotationsCaption = new Label(constants.annotations()) ;
+  		annotationsCaption.addStyleName("annotationsCommandPanelCaption") ;
+  		_actionsCommandPannel.add(annotationsCaption) ;
+
+  		// Button panel
+  		//
+  		if (bAddNewActionsButtons)
+  		{
+  			_actionsButtonsPannel = new FlowPanel() ;
+  			_actionsButtonsPannel.addStyleName("annotationsButtonsPanel") ;
+
+  			Label actionsCaption = new Label(constants.newAnnotations()) ;
+  			actionsCaption.addStyleName("annotationsButtonPanelCaption") ;
+  			_actionsButtonsPannel.add(actionsCaption) ;
+
+  			_actionsCommandPannel.add(_actionsButtonsPannel) ;
+  		}
+  	}
+
+  	// Existing annotations panel
   	//
-		_actionsButtonsPannel = new FlowPanel() ;
-		_actionsButtonsPannel.addStyleName("annotationsButtonsPanel") ;
-		
-		Label actionsCaption = new Label(constants.newAnnotations()) ;
-		actionsCaption.addStyleName("annotationsButtonPanelCaption") ;
-		_actionsButtonsPannel.add(actionsCaption) ;
-		
-		_actionsCommandPannel.add(_actionsButtonsPannel) ;
-  	
-		// Existing annotations panel
-		//
-		_actionsHistoryPannel = new FlowPanel() ;
-		_actionsHistoryPannel.addStyleName("annotationsHistoryPanel") ;
-		_actionsCommandPannel.add(_actionsHistoryPannel) ;
-		
-		_globalPanel.add(_actionsCommandPannel) ;
+  	_actionsHistoryPannel = new FlowPanel() ;
+  	_actionsHistoryPannel.addStyleName("annotationsHistoryPanel") ;
+  	_actionsCommandPannel.add(_actionsHistoryPannel) ;
+
+  	_globalPanel.add(_actionsCommandPannel) ;
   }
   
+  @Override
   public void initializeActionHistory()
   {
+  	if (null == _actionsHistoryPannel)
+  		return ;
+  		
   	_actionsHistoryPannel.clear() ;
   }
   
@@ -1568,6 +1586,9 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
   public void addNewActionButton(final String sCaption, ClickHandler handler, final String sActionId)
   {
   	if ((null == sCaption) || sCaption.isEmpty() || (null == sActionId) || sActionId.isEmpty())
+  		return ;
+  	
+  	if (_bScreenShotMode)
   		return ;
   	
   	Button newAnnotationButton = new Button(sCaption, handler) ;

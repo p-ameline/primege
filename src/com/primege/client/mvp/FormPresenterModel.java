@@ -36,8 +36,14 @@ import com.primege.client.util.FormControl;
 import com.primege.client.util.FormControlOptionData;
 import com.primege.client.widgets.ControlModel;
 import com.primege.client.widgets.ControlModelMulti;
+import com.primege.client.widgets.EventDateControl;
 import com.primege.client.widgets.FormBlockInformation;
 import com.primege.client.widgets.FormBlockPanel;
+import com.primege.client.widgets.FormIntegerBox;
+import com.primege.client.widgets.FormListBox;
+import com.primege.client.widgets.FormRadioButtons;
+import com.primege.client.widgets.FormTextArea;
+import com.primege.client.widgets.FormTextBox;
 import com.primege.shared.GlobalParameters;
 import com.primege.shared.database.Dictionary;
 import com.primege.shared.database.FormDataData;
@@ -67,6 +73,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	protected       FlowPanel              _encounterSpace ; //content of view
 		
 	protected int                     _iFormId ;
+	protected int                     _iScreenShotAnnotationId ;
 	protected String                  _sRecordDate ;
 	protected int                     _iArchetypeId ;
 	protected Document                _archetype ;
@@ -98,6 +105,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	protected String                  _sMailFrom ;
 	protected ArrayList<MailTo>       _aMailAddresses = new ArrayList<MailTo>() ;
 	protected String                  _sMailCaption ;
+	protected boolean                 _bMailPrntScreen ;
 	
 	protected ChangeHandler           _CheckExistChangeHandler ;
 	protected ClickHandler            _NewAnnotationClickHandler ;
@@ -138,10 +146,13 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		_NewAnnotationClickHandler = null ;
 		_ActionClickHandler        = null ;
 		
+		_iScreenShotAnnotationId   = -1 ;
+		
 		_bHasMailSection           = false ;
 		_sMailTemplate             = "" ;
 		_sMailFrom                 = "" ;
 		_sMailCaption              = "" ;
+		_bMailPrntScreen           = true ;
 			
 		// Don't call bind since it is already called by super PrimegeBasePresenter
 		//
@@ -168,7 +179,14 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 			{
 				String sInfo = "Handling EditFormEvent event" ;
 				if (event.inScreenShotMode())
-					sInfo = " (in screenshot mode)." ;
+				{
+					_iScreenShotAnnotationId = event.getScreenShotAnnotationId() ;
+					
+					sInfo = " (in screenshot mode" ;
+					if (-1 != _iScreenShotAnnotationId)
+						sInfo += " for annotation " + _iScreenShotAnnotationId ;
+					sInfo += ")." ;
+				}
 				else
 					sInfo = " (in standard mode)." ;
 				Log.info(sInfo) ;
@@ -177,6 +195,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				 
 				_encounterSpace = event.getWorkspace() ;
 				_encounterSpace.clear() ;
+				
 				
 				resetAll(event.inScreenShotMode()) ;
 				
@@ -327,6 +346,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		_sMailTemplate   = "" ;
 		_sMailFrom       = "" ;
 		_sMailCaption    = "" ;
+		_bMailPrntScreen = true ;
 	}
 	
 	/**
@@ -754,7 +774,8 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				
 				// Create the form
 				//
-				initFormFromArchetypeElement(currentElement, display.getMasterForm()) ;
+				if ((false == display.isScreenShotMode()) || (-1 == _iScreenShotAnnotationId))
+					initFormFromArchetypeElement(currentElement, display.getMasterForm()) ;
 				
 				current = currentElement.getNextSibling() ;
 			}
@@ -843,6 +864,8 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		
 		// Derived class can insert some code here, benefiting from all controls being created
 		//
+		// In screenshot mode for main form, this is the place the mail is sent (hence annotations are not loaded)
+		//
 		executePostDisplayProcesses() ;
 		
 		// Time to display annotations related controls
@@ -864,6 +887,15 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * 
 	 * */
 	protected void executePostDisplayProcesses() {
+	}
+	
+	/**
+	 * After annotations have been displayed, some subclasses may wish to do something 
+	 * 
+	 * To be implemented in subclasses
+	 * 
+	 * */
+	protected void executePostAnnotationsDisplayProcesses() {
 	}
 	
 	/**
@@ -993,6 +1025,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		String sMailBcc     = father.getAttribute("bcc") ;
 		String sMailFrom    = father.getAttribute("from") ;
 		String sMailCaption = father.getAttribute("caption") ;
+		String sMailPrtScr  = father.getAttribute("sendPrintScreen") ;
 		
 		if (null == action)
 		{
@@ -1009,6 +1042,8 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				_sMailFrom = sMailFrom ;
 			if (null != sMailCaption)
 				_sMailCaption = sMailCaption ;
+			if ((null != sMailPrtScr) && ("no".equalsIgnoreCase(sMailPrtScr) || "non".contentEquals(sMailPrtScr)))
+				_bMailPrntScreen = false ;
 		}
 		else
 		{
@@ -1025,6 +1060,8 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				action.setMailFrom(sMailFrom) ;
 			if (null != sMailCaption)
 				action.setMailCaption(sMailCaption) ;
+			if ((null != sMailPrtScr) && ("no".equalsIgnoreCase(sMailPrtScr) || "non".contentEquals(sMailPrtScr)))
+				action.setPrintScreenAttached(false) ;
 		}
 		
 		Node currentNode = father.getFirstChild() ;
@@ -1200,20 +1237,39 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		if (null == getEditedBlock())
 			return ;
 		
-		if (_aActions.isEmpty())
+		// When in screen shot mode for the main form, no need to display any annotation related controls
+		//
+		boolean bScreenShotMode = display.isScreenShotMode() ;
+		if (bScreenShotMode && (-1 != _iScreenShotAnnotationId))
 			return ;
 		
-		display.initializeActionControls() ;
+		if (_aActions.isEmpty())
+			return ;
 		
 		// Check available action buttons 
 		//
 		ArrayList<Action> aAvailableActions = new ArrayList<Action>() ;
-		
+
 		for (Action action : _aActions)
 			if (isActionAvailable(action))
 				aAvailableActions.add(action) ;
-				
-		if (false == aAvailableActions.isEmpty())
+		
+		ArrayList<FormLink> aLinks = getEditedBlock().getLinks() ;
+		
+		// Check if there is something to display
+		//
+		if (aAvailableActions.isEmpty() && ((null == aLinks) || aLinks.isEmpty()))
+			return ;
+		
+		display.initializeActionControls(false == aAvailableActions.isEmpty()) ;
+		
+		
+		
+		
+		
+		// Create buttons for new actions
+		//
+		if ((false == aAvailableActions.isEmpty()) && (false == bScreenShotMode))
 		{
 			// Create click handlers
 			//
@@ -1249,14 +1305,22 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		if (null == getEditedBlock())
 			return ;
 		
-		createActionsClickHandler() ;
+		boolean bScreenShotMode = display.isScreenShotMode() ;
 		
-		ArrayList<FormLink> aLinks = getEditedBlock().getLinks() ;
-		if ((null == aLinks) || aLinks.isEmpty())
-			return ;
+		if (false == bScreenShotMode)
+			createActionsClickHandler() ;
 		
-		for (FormLink link : aLinks)
-			displayAnnotation(link) ;
+		// Don't do this in screenshot mode, except if the screenshots targets an annotation
+		//
+		if ((false == bScreenShotMode) || (-1 != _iScreenShotAnnotationId))
+		{
+			ArrayList<FormLink> aLinks = getEditedBlock().getLinks() ;
+			if ((null == aLinks) || aLinks.isEmpty())
+				return ;
+		
+			for (FormLink link : aLinks)
+				displayAnnotation(link) ;
+		}
 	}
 	
 	/**
@@ -1265,6 +1329,14 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	protected void displayAnnotation(final FormLink link)
 	{
 		if (null == link)
+			return ;
+		
+		int iAnnotationFormId = link.getObjectFormId() ;
+		
+		// In screenshot mode, only the screenshot target annotation is displayed 
+		//
+		boolean bScreenShotMode = display.isScreenShotMode() ;
+		if (bScreenShotMode && (iAnnotationFormId != _iScreenShotAnnotationId))
 			return ;
 		
 		String sCaption = link.getPredicate() ;
@@ -1292,14 +1364,15 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		
 		// Get a block from display and populate it with annotation's controls
 		//
-		FormBlockPanel annotationPanel = display.getNewActionBlock(sCaption, link.getEntryDateHour(), link.getObjectFormId(), "", _ActionClickHandler) ;
+		FormBlockPanel annotationPanel = display.getNewActionBlock(sCaption, link.getEntryDateHour(), iAnnotationFormId, "", _ActionClickHandler) ;
 		if (null == annotationPanel)
 		{
-			Log.info("Cannot get a block from display. Annotation for form " + link.getObjectFormId() + " cannot be displayed.") ;
+			Log.info("Cannot get a block from display. Annotation for form " + iAnnotationFormId + " cannot be displayed.") ;
 			return ;
 		}
 		
-		// initFormFromArchetypeElement(action.getModel(), annotationPanel, annotationBlock) ;
+		if (bScreenShotMode)
+			editAnnotation(iAnnotationFormId, "") ;
 	}
 	
 	public class annotationNamingCallBack implements DataDictionaryCallBack
@@ -1440,15 +1513,15 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	protected void editAnnotation(final int iFormId, final String sActionId)
 	{
 		FormBlockPanel masterBlock = display.getActionFromAnnotationID(iFormId, sActionId) ;
-		
+
 		if (null == masterBlock)
 		{
 			Log.debug("FormPresenterModel::cancelAnnotation Cannot find information block for form " + iFormId) ;
 			return ;
 		}
-		
+
 		Action action = getActionFromId(sActionId) ;
-		
+
 		// If the edited block is already there, populate the panel with action's interface elements
 		//
 		if (null != masterBlock.getEditedBlock())
@@ -1457,76 +1530,77 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 			display.setActionBlockEditButtons(masterBlock, iFormId, _ActionClickHandler, true) ;
 		}
 		else
-	    _dispatcher.execute(new GetFormBlockAction(_supervisor.getUserId(), iFormId), new editAnnotationCallback()) ;
-	  }
+			_dispatcher.execute(new GetFormBlockAction(_supervisor.getUserId(), iFormId), new editAnnotationCallback()) ;
+	}
 
-	  protected class editAnnotationCallback implements AsyncCallback<GetFormBlockResult> 
-	  {
-	    public editAnnotationCallback() {
-	      super() ;
-	    }
+	protected class editAnnotationCallback implements AsyncCallback<GetFormBlockResult> 
+	{
+		public editAnnotationCallback() {
+			super() ;
+		}
 
-	    @Override
-	    public void onFailure(Throwable cause) {
-	      Log.error("Unhandled error", cause);
+		@Override
+		public void onFailure(Throwable cause) {
+			Log.error("Unhandled error", cause);
 
-	    }//end handleFailure
+		}//end handleFailure
 
-	    @Override
-	    public void onSuccess(GetFormBlockResult value) 
-	    {
-	    	String sServerMsg = value.getMessage() ;
-	    	if (false == sServerMsg.isEmpty())
-	    	{
-	    		Log.info("Error when getting annotation from server (" + sServerMsg + ").") ;
-	    		return ;
-	    	}
+		@Override
+		public void onSuccess(GetFormBlockResult value) 
+		{
+			String sServerMsg = value.getMessage() ;
+			if (false == sServerMsg.isEmpty())
+			{
+				Log.info("Error when getting annotation from server (" + sServerMsg + ").") ;
+				return ;
+			}
 
-	    	if (null == value.getFormBlock())
-	    	{
-	    		Log.info("Error when getting annotation from server (no form received).") ;
-	    		return ;
-	    	}
+			if (null == value.getFormBlock())
+			{
+				Log.info("Error when getting annotation from server (no form received).") ;
+				return ;
+			}
 
-	    	int iFormId = value.getFormBlock().getFormId() ;
+			int iFormId = value.getFormBlock().getFormId() ;
 
-	    	if (-1 == iFormId)
-	    	{
-	    		Log.info("Error when getting annotation from server (unknown form received).") ;
-	    		return ;
-	    	}
-	    	
-	    	// Get the block panel and fill it with incoming form
-	    	//
-	    	FormBlockPanel masterBlock = display.getActionFromAnnotationID(iFormId, "") ;
-	    	
-	    	if (null == masterBlock)
-	    	{
-	    		Log.debug("FormPresenterModel::editAnnotation Cannot find information block for form " + iFormId) ;
-	    		return ;
-	    	}
-	    	
-	    	masterBlock.setEditedBlock(new FormBlock<FormDataData>(value.getFormBlock())) ;
-	    	masterBlock.setActionIdentifier(value.getFormBlock().getActionId()) ;
-	    	
-	    	// Get the Action in order to find the specific archetype for this annotation
-	    	//
-	    	Action action = getActionFromId(masterBlock.getActionIdentifier()) ;
-	    	
-	    	if (null == action)
-	    	{
-	    		Log.debug("FormPresenterModel::editAnnotation Cannot find action from identifier " + masterBlock.getActionIdentifier()) ;
-	    		return ;
-	    	}
-	    	
-	    	// If the edited block is already there, populate the panel with action's interface elements
-	    	//
-	    	initFormFromArchetypeElement(action.getModel(), masterBlock) ;
-	    	display.setActionBlockEditButtons(masterBlock, iFormId, _ActionClickHandler, true) ;
-	    }
-	  }
+			if (-1 == iFormId)
+			{
+				Log.info("Error when getting annotation from server (unknown form received).") ;
+				return ;
+			}
 
-	
+			// Get the block panel and fill it with incoming form
+			//
+			FormBlockPanel masterBlock = display.getActionFromAnnotationID(iFormId, "") ;
+
+			if (null == masterBlock)
+			{
+				Log.debug("FormPresenterModel::editAnnotation Cannot find information block for form " + iFormId) ;
+				return ;
+			}
+
+			masterBlock.setEditedBlock(new FormBlock<FormDataData>(value.getFormBlock())) ;
+			masterBlock.setActionIdentifier(value.getFormBlock().getActionId()) ;
+
+			// Get the Action in order to find the specific archetype for this annotation
+			//
+			Action action = getActionFromId(masterBlock.getActionIdentifier()) ;
+
+			if (null == action)
+			{
+				Log.debug("FormPresenterModel::editAnnotation Cannot find action from identifier " + masterBlock.getActionIdentifier()) ;
+				return ;
+			}
+
+			// If the edited block is already there, populate the panel with action's interface elements
+			//
+			initFormFromArchetypeElement(action.getModel(), masterBlock) ;
+			display.setActionBlockEditButtons(masterBlock, iFormId, _ActionClickHandler, true) ;
+			
+			if (display.isScreenShotMode())
+				leaveWhenSaved(iFormId) ;
+		}
+	}
 	
 	/**
 	 * Delete an annotation
@@ -2094,6 +2168,143 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		
 		aMailAddresses.add(new MailTo(sAttributeContent, iType)) ;
 	}
+
+  /**
+   * Transform a string by replacing all "[VALUE tag]" blocks by their tag values in the form
+   * 
+   * @param sModel      Template to process
+   * @param masterBlock Information source
+   * 
+   * @return The text when all "[VALUE tag]" blocks in the template have been replaced
+   */
+  protected String replaceValueTags(final String sModel, FormBlockPanel masterBlock)
+  {
+  	if ((null == sModel) || sModel.isEmpty())
+  		return "" ;
+  	
+    String sInstantiated = sModel ;
+
+    int iTagPos = sInstantiated.indexOf("[VALUE") ;
+    while (iTagPos >= 0)
+    {
+      int iBodyLen = sInstantiated.length() ; 
+
+      // Get tag
+      //
+      // - it starts after "[VALUE"
+      //
+      int iPos = iTagPos + 6 ;
+      
+      // - it ends with a ']'
+      //
+      int iEndTagPos = sInstantiated.indexOf("]", iPos) ;
+      if (-1 == iEndTagPos)
+        return sInstantiated ; 
+      
+      String sTag = sInstantiated.substring(iPos, iEndTagPos) ;
+      sTag = sTag.trim() ;
+      
+      // Use tag's value to get proper information in form
+      //
+      sInstantiated = sInstantiated.substring(0, iTagPos) + getTagValue(sTag, masterBlock) + sInstantiated.substring(iEndTagPos + 1, iBodyLen) ;
+      
+      // Iterate
+      //
+      iTagPos = sInstantiated.indexOf("[VALUE") ;
+    }
+
+    return sInstantiated ;
+  }
+  
+  /**
+   * Get the text value for a tag (usually a path)
+   * 
+   * @param sTag        Tag to get value of
+   * @param masterBlock Information source
+   */
+  public String getTagValue(final String sTag, FormBlockPanel masterBlock)
+  {
+    if ((null == sTag) || "".equals(sTag))
+      return "" ;
+
+    FormControl control = display.getPlainControlForPath(sTag, masterBlock) ;
+    if ((null == control) || (null == control.getWidget()))
+      return "" ;
+
+    if (false == control.isInformationProvider())
+      return "" ;
+    
+    Widget widget = control.getWidget() ;
+    if (null == widget)
+      return "" ;
+    
+    if (widget instanceof FormTextArea)
+    {
+      FormTextArea textArea = (FormTextArea) widget ;
+      String sValue = textArea.getContent().getValue() ;
+      return sValue.replaceAll("(\r\n|\n)", "<br />") ;
+    }
+    if (widget instanceof FormTextBox)
+    {
+      FormTextBox textBox = (FormTextBox) widget ;
+      return textBox.getContent().getValue() ;
+    }
+    if (widget instanceof EventDateControl)
+    {
+      EventDateControl dateControl = (EventDateControl) widget ;
+      String sContentValue = dateControl.getContent().getValue() ;
+      if (sContentValue.isEmpty())
+        return "" ;
+      
+      return "" + dateControl.getDayForDate(sContentValue) + " " +
+                  dateControl.getMonthLabel(dateControl.getMonthForDate(sContentValue)) +
+                  " " + dateControl.getYearForDate(sContentValue) ;
+    }
+    if (widget instanceof FormIntegerBox)
+    {
+      FormIntegerBox integerBox = (FormIntegerBox) widget ;
+      return integerBox.getContent().getValue() ;
+    }
+    if (widget instanceof FormListBox)
+    {
+      FormListBox textListBox = (FormListBox) widget ;
+      String sSelectedPath = textListBox.getContent().getPath() ;
+      if ("".equals(sSelectedPath))
+        return "" ;
+
+      FormControlOptionData selectedOptionData = textListBox.getOptionForPath(sSelectedPath) ;
+      if (null == selectedOptionData)
+        return "" ;
+
+      return selectedOptionData.getCaption() ;
+    }
+    if (widget instanceof FormRadioButtons)
+    {
+      FormRadioButtons radioButtons = (FormRadioButtons) widget ;
+      String sSelectedPath = radioButtons.getContent().getPath() ;
+      if ("".equals(sSelectedPath))
+        return "" ;
+
+      FormControlOptionData selectedOptionData = radioButtons.getOptionForPath(sSelectedPath) ;
+      if (null == selectedOptionData)
+        return "" ;
+
+      return selectedOptionData.getCaption() ;
+    }
+    /*
+		if ("EventDateControl".equals(widget.getClass().getSimpleName()))
+		{
+			EventDateControl eventDate = (EventDateControl) widget ;
+			String sDate = eventDate.getContent().getValue() ;
+
+			CoachingFitDate date = new CoachingFitDate(sDate) ; 
+
+			return "" + date.getDay() + " " + eventDate.getMonthLabel(date.getMonth()) + "" + date.getYear() ;
+		}
+     */
+
+    return "" ;
+  }
 	
 	/**
 	 * Going back to the page the "new form" or "edit form" action was executed from

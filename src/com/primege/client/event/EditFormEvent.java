@@ -13,6 +13,7 @@ public class EditFormEvent extends GwtEvent<EditFormEventHandler>
 	private int       _iArchetypeId ;
 	private FormLink  _formLink ;
 	private boolean   _bScreenShotMode ;
+	private int       _iSShotAnnotationId ;
 	
 	public static Type<EditFormEventHandler> getType() 
 	{
@@ -23,20 +24,22 @@ public class EditFormEvent extends GwtEvent<EditFormEventHandler>
 	
 	public EditFormEvent(final FlowPanel flowPanel, final int iFormId, final int iArchetypeId, FormLink formLink)
 	{
-		_workspace       = flowPanel ;
-		_iFormId         = iFormId ;
-		_iArchetypeId    = iArchetypeId ;
-		_formLink        = formLink ;
-		_bScreenShotMode = false ;
+		_workspace          = flowPanel ;
+		_iFormId            = iFormId ;
+		_iArchetypeId       = iArchetypeId ;
+		_formLink           = formLink ;
+		_bScreenShotMode    = false ;
+		_iSShotAnnotationId = -1 ;
 	}
 	
-	public EditFormEvent(final FlowPanel flowPanel, final int iFormId, final int iArchetypeId, FormLink formLink, final boolean bScreenShotMode)
+	public EditFormEvent(final FlowPanel flowPanel, final int iFormId, final int iArchetypeId, FormLink formLink, final boolean bScreenShotMode, final int iSShotAnnotationId)
 	{
-		_workspace       = flowPanel ;
-		_iFormId         = iFormId ;
-		_iArchetypeId    = iArchetypeId ;
-		_formLink        = formLink ;
-		_bScreenShotMode = bScreenShotMode ;
+		_workspace          = flowPanel ;
+		_iFormId            = iFormId ;
+		_iArchetypeId       = iArchetypeId ;
+		_formLink           = formLink ;
+		_bScreenShotMode    = bScreenShotMode ;
+		_iSShotAnnotationId = iSShotAnnotationId ;
 	}
 	
 	public FlowPanel getWorkspace(){
@@ -57,6 +60,10 @@ public class EditFormEvent extends GwtEvent<EditFormEventHandler>
 	
 	public boolean inScreenShotMode() {
 		return _bScreenShotMode ;
+	}
+	
+	public int getScreenShotAnnotationId() {
+		return _iSShotAnnotationId ;
 	}
 	
 	@Override
