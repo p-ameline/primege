@@ -66,7 +66,7 @@ import com.primege.shared.util.MailTo;
 import net.customware.gwt.dispatch.client.DispatchAsync;
 import net.customware.gwt.presenter.client.EventBus;
 
-public abstract class FormPresenterModel<D extends FormInterfaceModel> extends PrimegeBasePresenter<D>
+public abstract class FormPresenterModel<D extends FormInterfaceModel> extends PrimegeBasePresenter<D> implements FormPresenterInterface
 {	
 	protected final DispatchAsync          _dispatcher ;
 	protected final PrimegeSupervisorModel _supervisor ;
@@ -289,7 +289,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * Reset the screen and set default values
 	 * 
 	 */
-	protected void prepareSreen()
+	public void prepareSreen()
 	{
 		resetAll(false) ;
 		
@@ -300,14 +300,14 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * This reset function is usually to be super-charged by super-classes, specifically to reset the display
 	 * 
 	 */
-	protected void resetAll(boolean bScreenShotMode) {
+	public void resetAll(boolean bScreenShotMode) {
 		resetAll4Model() ;
 	}
 	
 	/**
 	 * Nothing to be done there. Allows derived classes to initialize specific information when page loads
 	 */
-	protected void initialize() {
+	public void initialize() {
 	}
 	
 	/**
@@ -352,7 +352,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	/**
 	 * Derived classes may create handlers that react to information change in form
 	 */
-	protected void createChangeHandlers() {
+	public void createChangeHandlers(FormBlockPanel masterBlock) {
 	}
 	
 	/**
@@ -635,7 +635,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * 
 	 * @param iFormId Identifier of form, or annotation, that just was saved
 	 */
-	protected void leaveWhenSaved(int iFormId)
+	public void leaveWhenSaved(int iFormId)
 	{
 		display.setDefaultValues() ;
 		
@@ -664,7 +664,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * To be implemented in subclasses
 	 * 
 	 * */
-	protected void initFromExistingInformation() {
+	public void initFromExistingInformation() {
 	}
 	
 	/**
@@ -673,7 +673,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * To be implemented in subclasses
 	 * 
 	 * */
-	protected void initFromPreviousInformation() {
+	public void initFromPreviousInformation() {
 	}
 			
 	protected void getArchetype()
@@ -855,7 +855,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		
 		// Create handlers that react to information change in form
 		//
-		createChangeHandlers() ;
+		createChangeHandlers(null) ;
 		
 		// Create a click handler for the "initialize from previous form" button (if any)
 		//
@@ -886,7 +886,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * To be implemented in subclasses
 	 * 
 	 * */
-	protected void executePostDisplayProcesses() {
+	public void executePostDisplayProcesses() {
 	}
 	
 	/**
@@ -895,7 +895,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * To be implemented in subclasses
 	 * 
 	 * */
-	protected void executePostAnnotationsDisplayProcesses() {
+	public void executePostAnnotationsDisplayProcesses() {
 	}
 	
 	/**
@@ -1469,7 +1469,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 * @param sActionId Identifier of the {@link Action} involved (used only for new annotations)
 	 * @param bIsDraft  If <code>true</code>, then save as a draft, if <code>false</code> save as a valid form
 	 */
-	protected void saveAnnotation(final int iFormId, final String sActionId, boolean bIsDraft) {
+	public void saveAnnotation(final int iFormId, final String sActionId, boolean bIsDraft) {
 	}
 	
 	/**
@@ -1750,111 +1750,6 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 	 */
 	protected boolean isActionAvailable(final Action action) {
 		return false ;
-	}
-	
-	/**
-	 * Parse sub-levels of an archetype's form action section
-	 *
-	 */
-	protected void initAnnotationFromArchetypeElement(final Element father)
-	{
-/*
-		if (null == father)
-			return ;
-		
-		Node current = father.getFirstChild() ;
-		
-		while (null != current)
-		{
-			String sCurrentTagName = current.getNodeName() ;
-			
-			// Block
-			//
-			if      ("block".equalsIgnoreCase(sCurrentTagName))
-			{
-				Element currentElement = (Element) current ;
-				
-				String sBlockBgColor = currentElement.getAttribute("bgcolor") ;
-				String sBlockAlign   = currentElement.getAttribute("align") ;
-				String sBlockVAlign  = currentElement.getAttribute("valign") ;
-				String sBlockWidth   = currentElement.getAttribute("width") ;
-				String sBlockHeight  = currentElement.getAttribute("height") ;
-				
-				String sBlockCaption = currentElement.getAttribute("caption") ;
-				String sBlockStyle   = currentElement.getAttribute("style") ;
-				String sCaptionStyle = currentElement.getAttribute("caption_style") ;
-				String sBlockHelp    = currentElement.getAttribute("help") ;
-				
-				FormBlockPanel actionBlock = display.newActionBlockinsertNewBlock(sBlockBgColor, sBlockAlign, sBlockVAlign, sBlockWidth, sBlockHeight, sBlockCaption, sBlockStyle, sCaptionStyle, sBlockHelp) ;
-				
-				// Recursive call to initialize block content
-				//
-				initFormFromArchetypeElement(currentElement, actionBlock) ;
-				
-				display.endOfBlock(_bInPdfWhenEmpty) ;
-				
-				current = currentElement.getNextSibling() ;
-			}
-			// Control
-			//
-			else if (("information".equalsIgnoreCase(sCurrentTagName)) || ("label_information".equalsIgnoreCase(sCurrentTagName)))
-			{
-				Element currentElement = (Element) current ;
-				
-				String sControlPath    = currentElement.getAttribute("path") ;
-				String sControlCaption = currentElement.getAttribute("caption") ;
-				String sControlType    = currentElement.getAttribute("type") ;
-				String sControlSubtype = currentElement.getAttribute("subtype") ;
-				String sControlUnit    = currentElement.getAttribute("unit") ;
-				String sControlValue   = currentElement.getAttribute("value") ;
-				String sControlStyle   = currentElement.getAttribute("style") ;
-				String sCaptionStyle   = currentElement.getAttribute("caption_style") ;
-				String sInitFromPrev   = currentElement.getAttribute("init_from_latest") ;
-				String sExclusion      = currentElement.getAttribute("exclusion") ;
-				
-				boolean bInitFromPrev = false ;
-				if ((null != sInitFromPrev) && "true".equalsIgnoreCase(sInitFromPrev))
-				{
-					bInitFromPrev            = true ;
-					_bInitFromPreviousNeeded = true ;
-				}
-				
-				// Get options, if any
-				//
-				ArrayList<FormControlOptionData> aOptions = new ArrayList<FormControlOptionData>() ;
-				
-				NodeList nodes = current.getChildNodes() ;
-				for (int iNode = 0 ; iNode < nodes.getLength() ; iNode++)
-				{
-					Node optionNode = nodes.item(iNode) ;
-					String sOptionTagName = optionNode.getNodeName() ;
-					
-					if ("option".equalsIgnoreCase(sOptionTagName))
-					{
-						Element currentOption = (Element) optionNode ;
-						
-						String sOptionPath    = currentOption.getAttribute("path") ;
-						String sOptionCaption = currentOption.getAttribute("caption") ;
-						String sOptionUnit    = currentOption.getAttribute("unit") ;
-						String sOptionPopup   = currentOption.getAttribute("popup") ;
-						String sOptionExclu   = currentOption.getAttribute("exclusion") ;
-						
-						aOptions.add(new FormControlOptionData(sOptionPath, sOptionCaption, sOptionUnit, sOptionPopup, sOptionExclu)) ;
-					}
-				}
-				
-				boolean bInsertInBlock = true ;
-				if ("label_information".equalsIgnoreCase(sCurrentTagName))
-					bInsertInBlock = false ;
-				
-				insertNewControl(sControlPath, sControlCaption, sControlType, sControlSubtype, sControlUnit, sControlValue, aOptions, sControlStyle, sCaptionStyle, bInitFromPrev, sExclusion, bInsertInBlock, _bInPdfWhenEmpty) ;
-				
-				current = currentElement.getNextSibling() ;
-			}
-			else
-				current = current.getNextSibling() ;
-		}
-*/
 	}
 	
 	/**
