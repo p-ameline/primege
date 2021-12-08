@@ -16,7 +16,6 @@ import com.google.inject.Inject;
 
 import com.primege.client.global.PrimegeSupervisor;
 import com.primege.client.util.FormControlOptionData;
-import com.primege.client.widgets.FormBlockPanel;
 import com.primege.shared.database.CityData;
 import com.primege.shared.database.EventData;
 import com.primege.shared.database.FormData;
@@ -236,7 +235,7 @@ public class FormPresenter extends FormPresenterModel<FormPresenter.Display>
 		return getEditedInformationForRegularPath(aInformation, sPath, aOptions) ;
 	}
 	
-	protected void initFromExistingInformation()
+	public void initFromExistingInformation()
 	{
 		if (-1 == _iFormId)
 			return ;

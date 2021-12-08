@@ -61,6 +61,7 @@ public interface FormInterfaceModel extends PrimegeBaseInterface
 	// Actions/Annotations management
 	//
 	public FormBlockPanel  getNewActionBlock(final String sCaption, final String sDate, final int iAnnotationID, final String sActionId, ClickHandler actionClickHandler) ;
+	public FormBlockPanel  getSpecificActionFromAnnotationID(final int iAnnotationID) ;
 	public void            clearActionBlock(final FormBlockPanel formBlockPanel) ;
 	public void            removeActionBlock(final FormBlockPanel formBlockPanel) ;
 	

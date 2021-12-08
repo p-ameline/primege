@@ -1292,6 +1292,9 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
 			}
 		}
 		
+		if (null == _actionsHistoryPannel)
+			initializeActionControls(false) ;
+		
 		_actionsHistoryPannel.add(actionPanel) ;
 
 		_aActions.add(newBlock) ;
@@ -1473,7 +1476,8 @@ public abstract class FormViewModel extends PrimegeBaseDisplay implements FormIn
    * 
    * @return The {@link FormBlockPanel} if found, <code>null</code> if not
    */
-  protected FormBlockPanel getSpecificActionFromAnnotationID(final int iAnnotationID)
+  @Override
+  public FormBlockPanel getSpecificActionFromAnnotationID(final int iAnnotationID)
   {
   	if ((null == _aActions) || _aActions.isEmpty())
   		return null ;

@@ -507,6 +507,9 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		}
 	}
 	
+	/**
+	 * Callback after the server has registered an annotation
+	 */
 	protected class RegisterFormAnnotationCallback implements AsyncCallback<RegisterFormAnnotationResult> 
 	{
 		public RegisterFormAnnotationCallback() {
@@ -698,21 +701,21 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 		@Override
 		public void onSuccess(GetArchetypeResult value) 
 		{
-			if (value.wasSuccessful())
-			{
-				String sArchetype = value.getArchetype() ;
-				if ("".equals(sArchetype))
-					return ;
-				
-				try {
-					_archetype = XMLParser.parse(sArchetype) ;
-				} catch (DOMException e) {
-			    Window.alert("Could not parse XML document : " + e.getMessage()) ;
-			  }
-				
-				if (null != _archetype)
-					initFromArchetype() ;
+			if (false == value.wasSuccessful())
+				return ;
+
+			String sArchetype = value.getArchetype() ;
+			if ("".equals(sArchetype))
+				return ;
+
+			try {
+				_archetype = XMLParser.parse(sArchetype) ;
+			} catch (DOMException e) {
+				Window.alert("Could not parse XML document : " + e.getMessage()) ;
 			}
+
+			if (null != _archetype)
+				initFromArchetype() ;
 		}
 	}
 	
@@ -772,7 +775,7 @@ public abstract class FormPresenterModel<D extends FormInterfaceModel> extends P
 				if ((null != sStaticInformation) && (false == "".equals(sStaticInformation)))
 					parseStaticInformation(sStaticInformation) ;
 				
-				// Create the form
+				// Create the form, unless we are in screenshot mode for an annotation
 				//
 				if ((false == display.isScreenShotMode()) || (-1 == _iScreenShotAnnotationId))
 					initFormFromArchetypeElement(currentElement, display.getMasterForm()) ;
