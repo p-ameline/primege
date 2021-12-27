@@ -181,6 +181,10 @@ public class BuildCsvHandlerBase
     if (null != sHeaderLine)
     	csvStructure.setHeaderLine(sHeaderLine) ;
     
+    String sRoots = csvElement.getAttribute("roots") ;
+    if (null != sRoots)
+    	csvStructure.setRoots(sRoots) ;
+    
     // Get third level Element: the record description
   	//
     NodeList listOfRecord = csvElement.getElementsByTagName("record") ;

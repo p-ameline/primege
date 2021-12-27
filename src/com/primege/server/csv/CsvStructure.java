@@ -9,6 +9,7 @@ import java.util.ArrayList;
 public class CsvStructure
 {   
   protected String _sHeaderLine ;
+  protected String _sRoots ;
   
   protected ArrayList<CsvRecord> _aRecords = new ArrayList<CsvRecord>() ;
   
@@ -16,28 +17,45 @@ public class CsvStructure
    * Zero information Constructor
    *
    */
-  public CsvStructure()
-  {
-  	_sHeaderLine = "" ;
+  public CsvStructure() {
+  	reset() ;
   }
   
   /**
    * Default Constructor
    *
    */
-  public CsvStructure(final String sHeaderLine)
+  public CsvStructure(final String sHeaderLine, final String sRoots)
   {
   	if (null == sHeaderLine)
   		_sHeaderLine = "" ;
     else
     	_sHeaderLine = sHeaderLine ;
+  	
+  	if (null == sRoots)
+  		_sRoots = "" ;
+    else
+    	_sRoots = sRoots ;
   }
 
+  protected void reset()
+  {
+  	_sHeaderLine = "" ;
+  	_sRoots      = "" ;
+  }
+  
   public String getHeaderLine() {
   	return _sHeaderLine ;
   }
-  public void setHeaderLine(String sHeaderLine) {
+  public void setHeaderLine(final String sHeaderLine) {
   	_sHeaderLine = sHeaderLine ;
+  }
+  
+  public String getRoots() {
+  	return _sRoots ;
+  }
+  public void setRoots(final String sRoots) {
+  	_sRoots = sRoots ;
   }
   
   public ArrayList<CsvRecord> getRecords() {
